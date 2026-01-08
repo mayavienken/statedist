@@ -1,0 +1,17 @@
+# R temporary and history files
+.Rhistory
+.RData
+.Ruserdata
+.Renviron
+
+# RStudio project files
+.Rproj.user
+
+# OS files
+.DS_Store
+
+# OAuth / authentication
+.httr-oauth
+
+# Quarto / markdown
+.quarto
