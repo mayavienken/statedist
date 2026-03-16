@@ -259,7 +259,6 @@ ks3_1 <- ksmooth(bin_midpointsGT1, mean_stateprobsGT1[, 3], "normal", bandwidth 
 cut3_1 <- trim_to_range(ks3_1$x, ks3_1$y)
 
 
-pdf('/Users/mvienken/Desktop/YRW WiSe25:26/SimStudyDirichletGAM.pdf', width=9, height=3)
 par(mfrow=c(1,3), mgp = c(1.8, 0.5, 0), mar=c(3, 3, 1,1), cex.lab=1.3, cex.main=1.3)
 plot(NULL, ylim = c(0, 1),
      xlab = "covariate value z", ylab = "Pr(state i | z), i=1,2,3", main = "Setting (I)", bty = "n", 
@@ -306,6 +305,4 @@ for (i in 1:num_simulations) {
 lines(cut1_3$x, cut1_3$y, col = colour[1], lwd = 3)
 lines(cut2_3$x, cut2_3$y, col = colour[2], lwd = 3)
 lines(cut3_3$x, cut3_3$y, col = colour[3], lwd = 3)
-
-dev.off()
 
