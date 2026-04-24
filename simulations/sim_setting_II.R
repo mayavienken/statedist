@@ -305,4 +305,3 @@ for (i in 1:num_simulations) {
 lines(cut1_3$x, cut1_3$y, col = colour[1], lwd = 3)
 lines(cut2_3$x, cut2_3$y, col = colour[2], lwd = 3)
 lines(cut3_3$x, cut3_3$y, col = colour[3], lwd = 3)
-
