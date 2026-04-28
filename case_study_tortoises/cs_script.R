@@ -212,6 +212,7 @@ ggplot(df.animal[50:350,], aes(x = timestamp, y = temperature, group = gap_group
         plot.background = element_rect(fill = "transparent", colour = NA),
         axis.title=element_text(size=12))
 
+# complete temperature time series 
 #pdf("./case_study_tortoises/figures/temp_ts.pdf", width=6, height=4)
 par(mfrow=c(1,1), mar=c(4,4,1,1), cex.lab=1.2, mgp = c(1.8, 0.5, 0) )
 ggplot(df.animal, aes(x = timestamp, y = temperature, group = gap_group)) +
@@ -223,16 +224,19 @@ ggplot(df.animal, aes(x = timestamp, y = temperature, group = gap_group)) +
         axis.title=element_text(size=12))
 #dev.off()
 
-# observation processes decoded
+# observation processes coloured by decoded states
 #pdf("case_study_tortoises/figures/obs_processes.pdf", width=8, height=6)
 par(mfrow = c(2, 1), mar = c(4, 4, 1, 1), cex.lab = 1.2, mgp = c(1.8, 0.5, 0) )
-plot(df.animal$step[1:500], type="h", col=colour[mod.rtmb$states], ylab="step length", xlab="time", main="", bty = "n")
-plot(df.animal$angle[1:500], type="h", col=colour[mod.rtmb$states], ylab="turning angle", xlab="time", main="", bty = "n")
+plot(df.animal$step[1:500], type="h", col=colour[mod.rtmb$states], 
+     ylab="step length", xlab="time", main="", bty = "n")
+plot(df.animal$angle[1:500], type="h", col=colour[mod.rtmb$states], 
+     ylab="turning angle", xlab="time", main="", bty = "n")
 #dev.off()
 
-# plotting the transition probabilities
+# plotting the transition probabilities as function of temperature (without CIs)
 vis_z <- seq(0, 45, length=100)
 Gamma_vis <- tpm_g(vis_z, beta.hat)
+
 #pdf("./case_study_tortoises/figures/transprobs.pdf", width=8, height=5)
 par(mfrow=c(3,3), mar=c(3,3,2,1), mgp = c(1.8, 0.5, 0), cex.lab=1.3)
 for(i in 1:3){
@@ -265,7 +269,7 @@ zseq = seq(min(df.animal$temperature), max(df.animal$temperature), by = 0.01)
 Gamma_seq = tpm_g(Z = cbind(zseq), beta.hat)
 Prob = matrix(nrow = length(zseq), ncol = 3)
 for(i in 1:length(zseq)){ Prob[i,] = LaMa::stationary(Gamma_seq[,,i]) }
-prob = apply(Prob, 2, mean)
+prob = apply(Prob, 2, mean) # average state occupancy 
 
 #pdf("./case_study_tortoises/figures/obs_dist.pdf", width=4.5, height=3)
 par(mfrow = c(1, 2), mar = c(4, 3, 2, 1), cex.lab = 1, mgp = c(1.8, 0.5, 0))
@@ -284,13 +288,14 @@ curve(prob[1]*dvm(x, mu.kappa[1], kappa.hat[1]) + prob[2]*dvm(x, mu.kappa[2], ka
       lwd = 2, lty = 2, add = T, n=500)
 #dev.off()
 
-# hypothetical stationary distribution
+# hypothetical stationary distribution over covariate
 n <- dim(df.animal)[1]
 Delta <- matrix(NA, n, N)
 Delta[1,] <- rep(1/N, N)
 for (t in 2:n) Delta[t,] <- Delta[t-1,] %*% Gamma.hat[,,t]
 
-Delta <- Delta[10:n,] # we remove first values as initial distribution is arbitrary  
+# we remove first values as initial distribution is arbitrary 
+Delta <- Delta[10:n,]  
 z <- df.animal$temperature[10:n]
 
 zseq <- seq(min(z)-0.5, max(z)+0.5, length = 200)
@@ -395,7 +400,7 @@ for (state in 1:N) {
 #dev.off()
 
 # or by using this function that generates the plot automatically
-apply_dir_reg(y=Delta,x=z,N=3, covname="temperature")
+apply_dir_reg(y=Delta,x=z,N=3, covname="temp")
 
 # CI BB approach ----
 nCI <- 1000

@@ -71,7 +71,7 @@ apply_dir_reg <- function(y, x, k = 8, bs = "tp", lambda0 = 100, colour = c("ora
        pch = 16,
        col = alpha(colour[1], 0),
        bty = "n",
-       ylab = paste0("Pr(state i | x), i = 1,...,", N),
+       ylab = paste0("Pr(state i | ",paste0(covname), "), i = 1,...,", N),
        xlab = paste0(covname),
        main = "Flexible Dirichlet regression")
   
