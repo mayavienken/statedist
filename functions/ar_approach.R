@@ -1,31 +1,41 @@
+
 source("./functions/sim_fit_inhomogeneousHMM.r")
+
 library(LaMa) 
 library(scales)
 library(parallel)
 library(progressr)
 library(zoo)
 
-
+# simulate covariate series using fitted AR model
 simAr <- function(n, z) {
-  fit <- ar(ts(z))  
-  phi <- fit$ar    
-  sigma <- sqrt(fit$var.pred)
+  
+  fit <- ar(ts(z))            # fit AR model to observed covariate series 
+  phi <- fit$ar               # extract AR coefficients
+  sigma <- sqrt(fit$var.pred) # innovation standard deviation
   
   z_gen <- numeric(n)
-  p <- length(phi)  
-  z_gen[1:p] <- rnorm(p, mean(z), sigma)
+  p <- length(phi)            # AR order
+  
+  z_gen[1:p] <- rnorm(p, mean(z), sigma) # initialise with random draws
+  
   for (t in (p + 1):n) {
+    # generate new values from AR recursion
     z_gen[t] <- sum(phi * rev(z_gen[(t - p):(t - 1)])) + rnorm(1, 0, sigma)
   }
   return(z_gen)
 }
 
-
+# compute state probabilities for a given covariate sequence
 compStateProbs <- function(z, beta, n) {
+  
   Gamma <- tpm_g(z, beta)
+  
   Delta <- matrix(NA, n, 3)
-  Delta[1, ] <- rep(1/3, 3)
+  Delta[1, ] <- rep(1/3, 3) # initialise with uniform distribution
+  
   for (t in 2:n) {
+    # propagate state probabilities forward 
     Delta[t, ] <- Delta[t-1, ] %*% Gamma[, , t]
   }
   return(Delta)
@@ -63,15 +73,20 @@ simOneAr <- function(n, rho, mu, sig, beta, periodic, par, num_covsim) {
 }
 
 
-
+# compute stationary state probabilities over covariate grid 
+# (hypothetical stationary distribution (Patterson et al., 2009))
 fithypothetical <-  function(n, rho, mu, sig, beta, periodic, par, num_covsim) {
   
   sim <- simCovHMM(n = n, rho = rho, mu = mu, sig = sig, beta = beta, periodic = periodic)
   fit <- fitCovHMM(par = par, x = sim$x, Z = matrix(sim$z))
   
+  # define covariate grid
   zseq <- seq(min(sim$z), max(sim$z), length = 200)
+  
   Gammaseq <- tpm_g(zseq, fit$beta)
   Deltaseq <- matrix(NA, length(zseq), N)
+  
+  # compute stationary distribution at each covariate value
   for (t in 1:length(zseq)) Deltaseq[t,] <- LaMa::stationary(Gammaseq[,,t])
   
   result <- list(
