@@ -97,8 +97,8 @@ location <- addTiles(location)
 location <- addPolylines(location, lng = ~x, lat = ~y)
 location
 
-
-# Get blocks of NAs of covariate
+# checking for blocks of missing values
+# get blocks of NAs of covariate
 ts_index <- index(caro)
 temp_vals <- caro$eobs.temperature
 na_idx <- is.na(temp_vals)
@@ -132,6 +132,7 @@ block_3_end   <- as.POSIXct("2011-10-29 23:00:00")
 df.caro <- df.caro[!(df.caro$timestamp >= block_1_end & df.caro$timestamp <= block_2_start), ]
 df.caro <- df.caro[!(df.caro$timestamp >= block_2_end & df.caro$timestamp <= block_3_start), ]
 
+# track_id variable to identify the three tracks (separated by blocks of missing covariate values)
 df.caro$track_id <- NA
 df.caro$track_id[df.caro$timestamp <= block_1_end] <- 1
 df.caro$track_id[df.caro$timestamp >= block_2_start & df.caro$timestamp <= block_2_end] <- 2

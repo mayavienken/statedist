@@ -2,8 +2,8 @@
 
 source("./functions/sim_fit_inhomogeneousHMM.r")
 
-library(LaMa).    # qREML for penalty selection
-library(scales).  # for colour transparency
+library(LaMa)     # qREML for penalty selection
+library(scales)   # for colour transparency
 library(RTMBdist) # Dirichlet density
 library(splines2) # B-spline design matrix
 library(Matrix)   

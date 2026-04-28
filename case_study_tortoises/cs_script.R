@@ -1,4 +1,8 @@
-### Case study on giant Galápagos tortoises
+## Case study on giant Galápagos tortoises
+
+# Bastille-Rousseau G, Yackulic CB, Gibbs J, Frair JL, Cabrera F, Blake S. 2019. 
+# Data from: Migration triggers in a large herbivore: Galápagos giant tortoises navigating resource gradients on volcanoes.
+# Movebank Data Repository. https://doi.org/10.5441/001/1.6gr485fk
 
 # Functions and libraries ----
 
@@ -20,50 +24,57 @@ library(zoo)
 
 # Data ----
 load("./case_study_tortoises/data/df_caro.RData")
-df.animal <- df.caro
+df.animal <- df.caro # movement data for one individual
 
-# defining colours
+# defining colours for the three states 
 colour = c("orange", "skyblue", "seagreen")
 
 
 # Model fitting ----
 
-# initial parameters
-N = 3 # number of states
-mu.1 <- c(4.5,12, 40)
-sigma.1 <- c(2,4, 20)
-kappa.1 <- c(1.5, 1.5, 0.5)
+N = 3 # number of hidden states
 
+# initial values for state-dependent distributions
+mu.1 <- c(4.5,12, 40)       # step length mean (in metres)
+sigma.1 <- c(2,4, 20)       # step length SD
+kappa.1 <- c(1.5, 1.5, 0.5) # turning angle concentration
+
+# parameter list for RTMB (transformations ensuring parameter constraints)
 par = list(
-  logmu=log(mu.1), 
-  logsigma=log(sigma.1), 
+  logmu = log(mu.1), 
+  logsigma = log(sigma.1), 
   logkappa = log(kappa.1),
-  beta = matrix(c(rep(-1, 6), rep(0,6)), nrow=6),
+  beta = matrix(c(rep(-1, 6), rep(0,6)), nrow=6), 
   logitdelta = c(0, 0))
 
+# data passed to likelihood
 dat = list(
-  step=df.animal$step, 
-  angle=df.animal$angle, 
-  Z=matrix(df.animal$temperature), 
-  N=N, 
-  trackID=df.animal$track_id)
+  step = df.animal$step, 
+  angle = df.animal$angle, 
+  Z = matrix(df.animal$temperature), 
+  N = N, 
+  trackID = df.animal$track_id)
 
 # negative log-likelihood with RTMB
 nll.rtmb = function(par) {
+  
   getAll(par, dat)  
-  Gamma = tpm_g(Z, beta)
+  Gamma = tpm_g(Z, beta) # transition matrices depending on temperature
   ADREPORT(Gamma)
   
   delta = c(1, logitdelta)
   delta = delta / sum(delta)
   ADREPORT(delta)
   
+  # state-dependent parameters
   mu = exp(logmu); REPORT(mu)
   sigma = exp(logsigma); REPORT(sigma)
   kappa = exp(logkappa); REPORT(kappa)
-  mu.kappa = c(pi, pi, 0)
+  
+  mu.kappa = c(pi, pi, 0) # angle means
   allprobs = matrix(1, nrow = length(step), ncol = N)
   
+  # handle missing step/angle observations
   indStep <- which(!is.na(step))
   indAngle <- which(!is.na(angle))
   indBoth <- intersect(indStep, indAngle)
@@ -77,17 +88,22 @@ nll.rtmb = function(par) {
     
   }
   
+  # forward algorithm likelihood
   -forward_g(delta, Gamma, allprobs, trackID)
   
 }
 
-# fit model
+# model estimation
 obj.rtmb = MakeADFun(nll.rtmb, par, silent = T) 
 opt.rtmb = nlminb(obj.rtmb$par, obj.rtmb$fn, obj.rtmb$gr, control=list(iter.max=700, eval.max=700)) # optimisation
+
+# extract fitted quantities 
 mod.rtmb = obj.rtmb$report() 
+
+# most likely state sequence (Viterbi)
 mod.rtmb$states = viterbi_g(mod.rtmb$delta, mod.rtmb$Gamma, mod.rtmb$allprobs, df.animal$track_id)
 
-# unpack parameters
+# unpack estimated parameters
 mu.hat <- mod.rtmb$mu
 sigma.hat <- mod.rtmb$sigma
 kappa.hat <- mod.rtmb$kappa
@@ -96,12 +112,16 @@ Gamma.hat <- tpm_g(matrix(df.animal$temperature), beta.hat)
 delta.hat <- mod.rtmb$delta
 
 
-# alternatively using moveHMM (for CI estimation) 
-moveHMMmodel <- fitHMM(data=df.animal, nbStates=3, stepPar0= c(mu.1, sigma.1), anglePar0= c(pi, pi, 0, kappa.1),
-       formula=~temperature)
+# alternative fit using moveHMM (for CI estimation) 
+moveHMMmodel <- fitHMM(data=df.animal, nbStates=3, 
+                       stepPar0= c(mu.1, sigma.1), 
+                       anglePar0= c(pi, pi, 0, kappa.1),
+                       formula=~temperature)
+
 # hypothetical stationary distribution with CIs
 plotStationary(moveHMMmodel, plotCI=TRUE)
-# transition probabilities with CIs
+
+# transition probabilities with CIs over temperature grid
 predTPM <- predictTPM(moveHMMmodel, newData = data.frame(temperature=seq(0,45,length=100)), returnCI = TRUE)
 vis_z <- seq(0, 45, length=100)
 
@@ -143,7 +163,7 @@ for(i in 1:3){
 
 # Plots ----
 
-# GPS track
+# GPS track coloured by decoded states 
 register_stadiamaps(key = Sys.getenv("STADIAMAPS_KEY"))
 
 map_bg <- get_stadiamap(
@@ -153,6 +173,7 @@ map_bg <- get_stadiamap(
   maptype = "stamen_terrain_background"
 )
 #pdf("./case_study_tortoises/figures/track.pdf", width=4, height=3, bg = "transparent")
+# plot track with state colouring (note that some points overlap, despite transparency)
 ggmap(map_bg) +
   geom_point(aes(x = x, y = y), 
              data = df.animal[which(mod.rtmb$states == 3), ], 
@@ -181,6 +202,7 @@ df.animal <- df.animal %>%
     gap_group = cumsum(ifelse(is.na(time_diff) | time_diff > 24, 1, 0))
   )
 
+# zoomd-in view on temperature time series 
 par(mfrow=c(1,1), mar=c(4,4,1,1), cex.lab=1.2, mgp = c(1.8, 0.5, 0) )
 ggplot(df.animal[50:350,], aes(x = timestamp, y = temperature, group = gap_group)) +
   geom_line(color = "black") +
