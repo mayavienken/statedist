@@ -281,7 +281,7 @@ curve(prob[1]*dgamma2(x, mu.hat[1], sigma.hat[1]) + prob[2]*dgamma2(x, mu.hat[2]
 
 mu.kappa = c(pi, pi, 0)
 legend("topright", col=c(colour, "black"), legend=expression(state~1, state~2, state~3, marginal), lwd=2, lty=c(1, 1, 1, 2), bty="n", cex=1)
-hist(df.animal$angle, breaks = 60, col = "lightgrey", xlab = "turning angle", ylab="", main = "", prob = T, border=0)
+hist(df.animal$angle, breaks = seq(-pi, pi, length.out=61), col = "lightgrey", xlab = "turning angle", ylab="", main = "", prob = T, border=0)
 for(j in 1:3) curve(prob[j] * dvm(x, mu.kappa[j], kappa.hat[j]), 
                     lwd = 2, add = T, col = colour[j])
 curve(prob[1]*dvm(x, mu.kappa[1], kappa.hat[1]) + prob[2]*dvm(x, mu.kappa[2], kappa.hat[2]) + prob[3]*dvm(x, mu.kappa[3], kappa.hat[3]), 
