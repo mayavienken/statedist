@@ -263,6 +263,7 @@ cut2 <- trim_to_range(ks2$x, ks2$y)
 ks3 <- ksmooth(bin_midpointsGT2, mean_stateprobsGT2[, 3], "normal", bandwidth = 1)
 cut3 <- trim_to_range(ks3$x, ks3$y)
 
+par(mfrow=c(1,1), mar=c(4,4,1,1))
 plot(NULL, ylim = c(0, 1),
      xlab = "covariate value z", ylab = "Pr(state i|z), i=1,2,3", main = "", bty = "n", 
      xlim=c(-4, 4))
@@ -276,3 +277,4 @@ for (i in 1:num_simulations) {
 lines(cut1$x, cut1$y, col = colour[1], lwd = 3)
 lines(cut2$x, cut2$y, col = colour[2], lwd = 3)
 lines(cut3$x, cut3$y, col = colour[3], lwd = 3)
+
