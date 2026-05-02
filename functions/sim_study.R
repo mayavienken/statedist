@@ -163,7 +163,7 @@ oneDirGAM <- function(n, rho, mu, sig, beta, periodic, par) {
     mod <- dir_reg(Y, x, k = 8, bs="tp", lambda0=100)
   )
   
-  x_p <- seq(-4, 4, length = 200)
+  x_p <- seq(min(x), max(x), length = 200)
   Mean <- mod$predict(x_p)
   
   list(

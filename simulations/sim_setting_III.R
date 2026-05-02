@@ -125,7 +125,7 @@ lines(ksmooth(zseqGT3, DeltaseqGT3[, 3], "normal", bandwidth = 1), col = alpha(c
 
 #### AR and Hypothetical -----
 num_covsim <- 200
-num_simulations <- 20
+num_simulations <- 200
 
 results3 <- with_progress({
   p <- progressor(steps = num_simulations)
@@ -186,7 +186,6 @@ lines(ksmooth(bin_midpointsGT3, mean_stateprobsGT3[, 2], "normal", bandwidth = 1
 lines(ksmooth(bin_midpointsGT3, mean_stateprobsGT3[, 3], "normal", bandwidth = 1), col = colour[3], lwd = 3)
 
 ### Flexible Dirichlet regression ----
-source("00_GamApproach.R")
 num_simulations <- 200
 
 gam_results3 <- with_progress({

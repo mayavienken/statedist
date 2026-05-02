@@ -67,8 +67,10 @@ nll.rtmb = function(par) {
   ADREPORT(delta)
   
   # state-dependent parameters
+  # step lengths
   mu = exp(logmu); REPORT(mu)
   sigma = exp(logsigma); REPORT(sigma)
+  # turning angles
   kappa = exp(logkappa); REPORT(kappa)
   
   mu.kappa = c(pi, pi, 0) # angle means
@@ -328,8 +330,12 @@ legend("topright",col = c( "orange",  "skyblue", "seagreen"), lty = c(3,3,3),
 
 # BB approach ----
 
+# as complete temperature time series shows strong seasonal patterns we fit a simple model 
+# to capture this seasonality and then apply block bootstrap to the residuals 
 df.animal$doy <- as.numeric(format(df.animal$timestamp, "%j"))
 mod_lm <- lm(temperature ~ sin((2*pi*doy)/365) + cos((2*pi*doy)/365), data=df.animal)
+
+### plot(mod_lm$residuals, type="l")
 
 simulated_x <- mclapply(1:100, function(i) block_bootstrap(mod_lm$residuals, 24, n), mc.cores = max(1, detectCores() - 2))
 simulated_x <- do.call(cbind, simulated_x)
