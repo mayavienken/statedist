@@ -91,34 +91,3 @@ apply_dir_reg <- function(y, x, k = 8, bs = "tp", lambda0 = 100, colour = c("ora
   return(list(model = mod, x_p = x_p, predicted_mean = Mean))
 }
 
-
-oneDirGAM <- function(n, rho, mu, sig, beta, periodic, par) {
-  sim <- simCovHMM(n = n, rho=rho, mu = mu, sig = sig, beta = beta, periodic = periodic)
-  fit <- fitCovHMM(par = par, x = sim$x, Z = matrix(sim$z))
-  
-  z <- sim$z
-  Gamma <- tpm_g(z, fit$beta)
-  
-  Delta <- matrix(NA, n, 3)
-  Delta[1, ] <- rep(1/3, 3)
-  for (t in 2:n) Delta[t, ] <- Delta[t-1, ] %*% Gamma[,,t]
-  
-  Y <- Delta[10:n,]
-  x <- z[10:n]
-  
-  system.time(
-    mod <- dir_reg(Y, x, k = 8, bs="tp", lambda0=100)
-  )
-  
-  x_p <- seq(-4, 4, length = 200)
-  Mean <- mod$predict(x_p)
-  
-  list(
-    State1 = list(x = x_p, y = Mean[,1]),
-    State2 = list(x = x_p, y = Mean[,2]),
-    State3 = list(x = x_p, y = Mean[,3])
-  )
-}
-
-
-

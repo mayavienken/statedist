@@ -6,6 +6,7 @@ source("functions/sim_fit_inhomogeneousHMM.r")
 source("functions/ar_approach.r")
 source("functions/bb_approach.r")
 source("functions/dir_reg.r")
+source("functions/sim_study.r")
 
 colour = c("orange", "skyblue", "seagreen")
 

@@ -13,6 +13,7 @@ block_bootstrap <- function(ts, block_size, n) {
   return(bootstrap_sample[1:n])  # trim to match original length
 }
 
+
 compStateProbs <- function(z, beta, n) {
   Gamma <- tpm_g(z, beta)
   Delta <- matrix(NA, n, 3)

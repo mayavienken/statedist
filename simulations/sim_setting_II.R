@@ -6,6 +6,7 @@ source("functions/sim_fit_inhomogeneousHMM.r")
 source("functions/ar_approach.r")
 source("functions/bb_approach.r")
 source("functions/dir_reg.r")
+source("functions/sim_study.r")
 
 colour = c("orange", "skyblue", "seagreen")
 
@@ -144,12 +145,12 @@ for (i in 1:num_simulations) {
   lines(curve$State2[[i]]$x, curve$State2[[i]]$y, col = alpha(colour[2], 0.1), lwd = 1)
   lines(curve$State3[[i]]$x, curve$State3[[i]]$y, col = alpha(colour[3], 0.1), lwd = 1)
 }
-lines(ksmooth(bin_midpointsGT2, mean_stateprobsGT2[, 1], "normal", bandwidth = 1), col = colour[1], lwd = 3)
-lines(ksmooth(bin_midpointsGT2, mean_stateprobsGT2[, 2], "normal", bandwidth = 1), col = colour[2], lwd = 3)
-lines(ksmooth(bin_midpointsGT2, mean_stateprobsGT2[, 3], "normal", bandwidth = 1), col = colour[3], lwd = 3)
-lines(ksmooth(zseqGT2, DeltaseqGT2[, 1], "normal", bandwidth = 1), col = colour[1], lwd = 3, lty=2)
-lines(ksmooth(zseqGT2, DeltaseqGT2[, 2], "normal", bandwidth = 1), col = colour[2], lwd = 3, lty=2)
-lines(ksmooth(zseqGT2, DeltaseqGT2[, 3], "normal", bandwidth = 1), col = colour[3], lwd = 3, lty=2)
+lines(ksmooth(bin_midpointsGT1, mean_stateprobsGT1[, 1], "normal", bandwidth = 1), col = colour[1], lwd = 3)
+lines(ksmooth(bin_midpointsGT1, mean_stateprobsGT1[, 2], "normal", bandwidth = 1), col = colour[2], lwd = 3)
+lines(ksmooth(bin_midpointsGT1, mean_stateprobsGT1[, 3], "normal", bandwidth = 1), col = colour[3], lwd = 3)
+lines(ksmooth(zseqGT1, DeltaseqGT1[, 1], "normal", bandwidth = 1), col = colour[1], lwd = 3, lty=2)
+lines(ksmooth(zseqGT1, DeltaseqGT1[, 2], "normal", bandwidth = 1), col = colour[2], lwd = 3, lty=2)
+lines(ksmooth(zseqGT1, DeltaseqGT1[, 3], "normal", bandwidth = 1), col = colour[3], lwd = 3, lty=2)
 
 legend("right",
        col = c(colour, "transparent", "black", "black"),
