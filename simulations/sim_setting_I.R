@@ -250,7 +250,7 @@ for (i in 1:num_simulations) {
   gamcurve2$State3[[i]] <- gam_results2[[i]]$State3
 }
 
-trim_to_range <- function(x, y, xmin=min(zGT), xmax=max(zGT)) {
+trim_to_range <- function(x, y, xmin=min(zGT2), xmax=max(zGT2)) {
   keep <- x >= xmin & x <= xmax
   list(x = x[keep], y = y[keep])
 }
