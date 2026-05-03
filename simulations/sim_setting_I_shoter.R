@@ -12,7 +12,7 @@ colour = c("orange", "skyblue", "seagreen")
 
 # Parameters ----
 N <- 3 
-n <- 200 
+n <- 500 
 num_simulations <- 200 # number of simulated datasets 
 rho <- 0.95 # highly persistent covariate
 epsilon <- sqrt(1 - rho^2)
@@ -251,7 +251,7 @@ for (i in 1:num_simulations) {
   gamcurve2$State3[[i]] <- gam_results2[[i]]$State3
 }
 
-trim_to_range <- function(x, y, xmin=min(zGT), xmax=max(zGT)) {
+trim_to_range <- function(x, y, xmin=min(zGT2), xmax=max(zGT2)) {
   keep <- x >= xmin & x <= xmax
   list(x = x[keep], y = y[keep])
 }
