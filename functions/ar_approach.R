@@ -45,15 +45,17 @@ compStateProbs <- function(z, beta, n) {
 applyAr <- function(sim, par, num_covsim) {
   z <- sim$z
   x <- sim$x
+  n <- length(z)
   fit <- fitCovHMM(par = par, x = x, Z = matrix(z))
   
-  sim_z <- mclapply(1:num_covsim, function(i) simAr(n=n, z), mc.cores = max(1, detectCores() - 2))
+  sim_z <- mclapply(1:num_covsim, function(i) simAr(n=n, z=z), mc.cores = max(1, detectCores() - 2))
   sim_z <- do.call(cbind, sim_z)
   
-  sim_delta <- mclapply(1:num_covsim, function(i) compStateProbs(sim_z[, i], fit$beta, n=n), mc.cores = max(1, detectCores() - 2))
-  sim_delta <- array(unlist(sim_delta), dim = c(n=n, 3, num_covsim))
+  sim_delta <- mclapply(1:num_covsim, function(i) compStateProbs(z = sim_z[, i], beta = fit$beta, n = n), mc.cores = max(1, detectCores() - 2))
+  #sim_delta <- array(unlist(sim_delta), dim = c(n=n, 3, num_covsim))
+  sim_delta <- simplify2array(sim_delta)
   
-  z_bins <- seq(min(sim_z), max(sim_z), length.out = 30)
+  z_bins <- seq(min(sim_z), max(sim_z), length.out = 50)
   bin_midpoints <- (z_bins[-1] + z_bins[-length(z_bins)]) / 2
   
   mean_state_probs <- matrix(NA, nrow = length(bin_midpoints), ncol = 3)
@@ -69,5 +71,5 @@ applyAr <- function(sim, par, num_covsim) {
     State3 = data.frame(x = bin_midpoints, y = mean_state_probs[, 3])
   )
   
-  return(result)
+  return(list(sim_z = sim_z, result = result))
 }

@@ -110,17 +110,17 @@ plot_state_probs(z_low, Delta_low, zseq, Deltaseq,"")
 par(mfrow=c(1,1),mar=c(3,1,1,4))
 plot(ts(sim_low$z[25:100]), type="o", axes=FALSE, ann=FALSE, bty="n", col="black",bg="white", pch=21)
 
-abline(v=6+25,  lty=2, col="darkorange", lwd=2)
-abline(v=14+25, lty=2, col="darkorange", lwd=2)
+abline(v=6+25,  lty=2, col="skyblue2", lwd=2)
+abline(v=14+25, lty=2, col="skyblue2", lwd=2)
 
-text(6+26,  sim_low$z[55]+0.1,  labels=expression(z[80]),  pos=2.9, col="darkorange", cex=1.2)
-points(6+25, sim_low$z[55], pch=16, col="darkorange", cex=1.1)
-cols_or <- colorRampPalette(c("#FFFF99", "darkorange"))(15)
-cols_wh <- colorRampPalette(c("white", "#FFFF99"))(17)[1:16]
-points(17:31, sim_low$z[41:55] , pch = 16, col = cols_or, cex = 1.1)
-points(1:16, sim_low$z[25:40] , pch = 16, col = cols_wh, cex = 1.1)
-text(14+30, sim_low$z[63], labels=expression(z[88]), pos=2.9, col="darkorange", cex=1.2)
-points(14+25, sim_low$z[63], pch=16, col="darkorange", cex=1.1)
+text(6+26,  sim_low$z[55]+0.1,  labels=expression(z[80]),  pos=2.9, col="skyblue2", cex=1.2)
+points(6+25, sim_low$z[55], pch=16, col="skyblue2", cex=1.1)
+#cols_or <- colorRampPalette(c("#FFFF99", "darkorange"))(15)
+#cols_wh <- colorRampPalette(c("white", "#FFFF99"))(17)[1:16]
+cols_or <- alpha("skyblue2", seq(0, 1, length.out=31))
+points(1:31, sim_low$z[25:55] , pch = 16, col = cols_or, cex = 1.1)
+text(14+30, sim_low$z[63], labels=expression(z[88]), pos=2.9, col="skyblue2", cex=1.2)
+points(14+25, sim_low$z[63], pch=16, col="skyblue2", cex=1.1)
 
 arrows(x0 = 1, y0 = min(sim_low$z[25:101]) - 0.05 * diff(range(sim_low$z[25:101])),
        x1 = 77, y1 = min(sim_low$z[25:101]) - 0.05 * diff(range(sim_low$z[25:101])),
@@ -130,6 +130,9 @@ text(75, min(sim_low$z[25:101]) - 0.13*diff(range(sim_low$z[25:101])),
      labels="time", xpd=TRUE, cex=1.2)
 # dev.off()
 
+
+
+## creating realistic paths backsampled for given time point
 # autocovariances based on Yule Walker equations
 gen_autocovariances = function(phi, sigma2, max_lag) {
   p = length(phi)
@@ -163,41 +166,123 @@ cond_dist_ARp = function(mu, sigma, phi, k, x) {
 
 # AR fit with automatic order selection
 fit = ar(ts(sim_low$z))
-mu = 0
+mu1 = 0
 (phi_hat = fit$ar)
 
 (sigma_hat = sqrt(fit$var.pred))
 
+### figure comparing hypothetical stationary distribution assumption vs. covariate sequence
+# + realistic paths backsampled from fitted AR model, for given time point 
 
-
-
-### comparing hypothetical stationary observation assumption vs. number of possible observed paths 
-
-# pdf("figures/paper_paths_hypothetical_real.pdf", width=7, height=3)
+#pdf("figures/paper_paths_hypothetical_real_fade.pdf", width=7, height=3)
 par(mfrow=c(1,2), mar=c(3,1,1,1))
 
 ylim <- range(c(y, paths))
-cols <- colorRampPalette(c("skyblue", "darkblue"))(20)
+# colours are brightening the further we go in past, to illustrate the decreasing influence of past values
+#cols <- colorRampPalette(c("skyblue", "darkblue"))(20)
+cols <- alpha("darkblue", seq(0.1, 1, length.out=20))
 y <- rep(sim_low$z[100], times = 20)
+
+# covariate path under hypothetical stationary distribution assumption 
 plot(ts(y),type = "n",axes = FALSE,ann = FALSE,bty = "n",ylim=ylim)
 for(i in 1:19){lines(i:(i+1), y[i:(i+1)], col = cols[i], lwd = 2)}
-points(1:20, y, pch = 16, col = cols, cex = 1.1)
+points(1:20, y,pch = 16,col = "white",cex = 1)
+points(1:20, y, pch = 16, col = cols, cex = 1)
 
-cols <- colorRampPalette(c("skyblue", "darkblue"))(20)
 y <- sim_low$z[81:100]
 
-k <- 20
-B <- 100
-par <- cond_dist_ARp(mu, sigma_hat, phi_hat, k, x0)
+k <- 20 
+B <- 100 # number of paths to simulate
+par <- cond_dist_ARp(mu1, sigma_hat, phi_hat, k, x0)
 xsim <- mvtnorm::rmvnorm(B, par$mu_cond, par$Sigma_cond)
 paths <- cbind(xsim, rep(x0,B))
 
+# actual covariate path + alternative paths backsampled from fitted AR model, for given time point
 plot(ts(y), type="n", axes=FALSE, ann=FALSE, bty="n", ylim=ylim)
 for(b in 1:10)
   lines(1:k, paths[b,], col="lightgrey")
 for(i in 1:(length(y)-1))
   lines(i:(i+1), y[i:(i+1)], col=cols[i], lwd=2)
-points(1:length(y), y, pch=16, col=cols, cex=1.1)
-# dev.off()
+points(1:20, y,pch = 16,col = "white",cex = 1)
+points(1:length(y), y, pch=16, col=cols, cex=1)
+#dev.off()
 
+# added formulas to figure with keynote 'create_fig_hyp_path.key'
+
+## figure to explain resampling procedure
+par(mfrow=c(1,1))
+n_bins <- 50
+z_breaks <- seq(min(sim_low$z)-0.2, max(sim_low$z)+0.2, length.out = n_bins + 1)
+z_bins <- cut(sim_low$z, breaks = z_breaks, include.lowest = TRUE)
+bin_colors <- colorRampPalette(c("#0d0887", "#7e03a8", "#cc4778", "#f89540", "#f0f921"))(n_bins)
+point_colors <- bin_colors[as.numeric(z_bins)]
+
+# pdf("figures/bins_orig_cov.pdf", width=6, height=5)
+par(mar = c(4, 4, 3, 2), cex.lab = 1.3, cex.axis = 1.1)
+plot(1:(n/2), sim_low$z[1:1000], type = "n",xlab = "time",ylab = " z",
+     main = "",cex.main = 1.2,bty = "l", ylim=c(min(sim_low$z)-0.2, max(sim_low$z)+0.2))
+abline(h=z_breaks, col="gray90", lty=1)
+
+# the line and points
+lines(1:(n/2), sim_low$z[1:1000], col = "gray50", lwd = 1)
+points(1:(n/2), sim_low$z[1:1000], 
+       col = point_colors, 
+       pch = 16, 
+       cex = 0.8)
+# dev.off()
+par = c(beta = c(rep(-1, 6), rep(0,6)),
+        logitdelta = c(0,0,1), 
+        mu = c(6, 15, 20), 
+        sig = sig)
+
+ar_sim <- applyAr(sim_low, par, 250)
+
+
+#pdf("figures/bins_sim_cov.pdf", width=4, height=10)
+layout(matrix(c(1,2,3,4), ncol=1), heights=c(0.7,0.7,0.1,0.7))
+
+par(mar=c(1,1,1,1))
+
+sim1 <- ar_sim$sim_z[,1][1:1000]
+sim_bins <- cut(sim1, breaks=z_breaks, include.lowest=TRUE)
+sim_colors <- bin_colors[as.numeric(sim_bins)]
+plot(1:1000, sim1, type="n", axes=FALSE, ann=FALSE, main="Simulation 1", bty="l")
+lines(1:1000, sim1, col="gray50", lwd=1)
+points(1:1000, sim1, col=sim_colors, pch=16, cex=0.8)
+
+sim2 <- ar_sim$sim_z[,2][1:1000]
+sim_bins <- cut(sim2, breaks=z_breaks, include.lowest=TRUE)
+sim_colors <- bin_colors[as.numeric(sim_bins)]
+plot(1:1000, sim2, type="n", axes=FALSE, ann=FALSE, main="Simulation 2", bty="l")
+lines(1:1000, sim2, col="gray50", lwd=1)
+points(1:1000, sim2, col=sim_colors, pch=16, cex=0.8)
+
+plot.new()
+
+sim250 <- ar_sim$sim_z[,250][1:1000]
+sim_bins <- cut(sim250, breaks=z_breaks, include.lowest=TRUE)
+sim_colors <- bin_colors[as.numeric(sim_bins)]
+plot(1:1000, sim250, type="n", axes=FALSE, ann=FALSE, main="Simulation 250", bty="l")
+lines(1:1000, sim250, col="gray50", lwd=1)
+points(1:1000, sim250, col=sim_colors, pch=16, cex=0.8)
+
+#dev.off()
+
+
+
+plot(ar_sim$result$State2$x, ar_sim$result$State2$y, type="l", col="red", ylim=c(0,1), xlab="covariate value z", ylab="Pr(state 1 | z)")
+
+par(mfrow=c(1,1), mar=c(4,4,2,1))
+plot_state_probs(z_low, Delta_low, zseq, Deltaseq,
+                 "Setting II: low persistence")
+par = c(beta = c(beta),
+        logitdelta = c(0,1), 
+        mu = mu, 
+        sig = log(sig))
+
+ar_sim <- applyAr(sim_low, par, 550)
+
+plot(ar_sim$result$State1$x, ar_sim$result$State1$y, col=bin_colors, ylim=c(0,1), xlab="covariate value z", ylab="Pr(state i | z)", pch=19)
+points(ar_sim$result$State2$x, ar_sim$result$State2$y, col=bin_colors, pch=19)
+points(ar_sim$result$State3$x, ar_sim$result$State3$y, col=bin_colors, pch=19)
 
