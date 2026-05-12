@@ -1,4 +1,4 @@
-# Dirichlet regression with spline-based covariate effects
+# Flexible Dirichlet regression with penalised-spline covariate effects
 
 source("./functions/sim_fit_inhomogeneousHMM.r")
 
@@ -10,17 +10,36 @@ library(Matrix)
 library(progressr)
 
 # Dirichlet regression with spline-based covariate effect
+#
+# Arguments
+#   y        n x N matrix of probability vectors (each row sums to 1).
+#   x        length-n numeric vector of covariate values.
+#   k        spline basis dimension. Default 10. Larger k allows more
+#            wiggliness; the qREML penalty selection prevents over-fitting.
+#   bs       spline basis. Default "tp" (thin-plate). Anything supported by
+#            `LaMa::make_matrices` is allowed.
+#   lambda0  starting value of the smoothing parameter; the actual value is
+#            chosen by qREML and is not very sensitive to this initialiser.
+#   alpha    step-size parameter passed to qreml() (see LaMa documentation).
+#   silent   verbosity flag passed to qreml(). 1 = quiet, 2 = silent.
+#
+# Value
+#   The fitted qREML model object, augmented with a `predict` method
+#   returning the Dirichlet mean (i.e. the predicted state-probability
+#   vector) at user-supplied covariate values.
+
 dir_reg <- function(y, x, k = 10, bs = "tp", lambda0 = 1e3, alpha = 0.1, silent = 1) {
   
   # define spline formula for covariate effect 
   form <- eval(substitute(~ s(x, bs = bs, k = k), list(bs = bs, k = k)))
   
-  # to construct design and penalty matrices for models involving penalised splines
+  # to construct design matrix X and penalty matrix S for models involving penalised splines
   modmat <- make_matrices(form, data = data.frame(x = x)) 
   X <- modmat$Z       # spline design matrix
   S <- modmat$S[[1]]  # penalty matrix
   
   # penalised negative log-likelihood
+  # concentration parameters are kepts positive via the exponential link
   pnll <- function(par) {
     getAll(par, dat, warn = FALSE)
     
@@ -30,6 +49,7 @@ dir_reg <- function(y, x, k = 10, bs = "tp", lambda0 = 1e3, alpha = 0.1, silent 
     -sum(ddirichlet(y, Alpha, log = TRUE), na.rm = TRUE) + 
       penalty(beta, S, lambda) 
   }
+  
   # initialise model parameters 
   par <- list(
     beta0 = rep(0, ncol(y)),
@@ -43,6 +63,7 @@ dir_reg <- function(y, x, k = 10, bs = "tp", lambda0 = 1e3, alpha = 0.1, silent 
   # fit model using restricted maximum likelihood
   mod <- qreml(pnll, par, dat, random = "beta", 
                alpha = alpha, silent = silent)
+  
   # define prediction method for new covariate values
   mod$predict <- function(x_p) {
     X_p <- pred_matrix(modmat, newdata = data.frame(x = x_p))     # new spline design matrix
@@ -53,8 +74,13 @@ dir_reg <- function(y, x, k = 10, bs = "tp", lambda0 = 1e3, alpha = 0.1, silent 
   return(mod)
 }
 
-# wrapper: fit model and produce diagnostic plot
-apply_dir_reg <- function(y, x, k = 8, bs = "tp", lambda0 = 100, colour = c("orange", "skyblue", "seagreen"), N, x_range_extension = 0.5, covname="covariate") {
+# Convenience wrapper: fit a Dirichlet regression and immediately produce
+# the (diagnostic) scatter-plot-plus-curves figure used throughout the paper
+# (observed state probabilities as transparent points, fitted smooth means
+# overlaid as solid curves)
+apply_dir_reg <- function(y, x, k = 8, bs = "tp", lambda0 = 100, 
+                          colour = c("orange", "skyblue", "seagreen", "orchid", "steelblue", "coral"), 
+                          N, x_range_extension = 0.5, covname="covariate") {
   
   # fit Dirichlet regression model
   mod <- dir_reg(y, x, k = k, bs = bs, lambda0 = lambda0)
@@ -82,7 +108,8 @@ apply_dir_reg <- function(y, x, k = 8, bs = "tp", lambda0 = 100, colour = c("ora
   
   # overlay fitted smooth curves
   for (state in 1:N) {
-    darker_col <- adjustcolor(colour[state], red.f = 0.9, green.f = 0.9, blue.f = 0.9, alpha.f = 1)
+    darker_col <- adjustcolor(colour[state], red.f = 0.9, green.f = 0.9, blue.f = 0.9,
+                              orchid.f = 0.9, steelblue.f = 0.9, coral.f = 0.9, alpha.f = 1)
     lines(x_p, Mean[, state], col = "white", lwd = 7, lty = 1)
     lines(x_p, Mean[, state], col = darker_col, lwd = 3, lty = 1)
   }
