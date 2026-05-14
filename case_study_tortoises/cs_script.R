@@ -327,6 +327,9 @@ legend("topright",col = c( "orange",  "skyblue", "seagreen"), lty = c(3,3,3),
        lwd = 3, bty = "n", legend = expression("", rho, ""), y.intersp = 0.3, cex = 1.3)
 #dev.off()
 
+# state occupancy probabilities at 30 degrees (hypothetical stationary distribution)
+which(round(zseq, 2)==30)
+Deltaseq[133,]
 
 # BB approach ----
 
@@ -345,7 +348,7 @@ sim_delta <- future_lapply(1:100,
   function(i) compStateProbs(simulated_x[, i], mod.rtmb$beta, n=length(simulated_x[,1])))
 sim_delta <- array(unlist(sim_delta), dim = c(n, N, 100))
 
-x_bins <- seq(min(simulated_x)-1, max(simulated_x)+1, length.out = 30)
+x_bins <- seq(min(simulated_x)-1, max(simulated_x)+1, length.out = 50)
 bin_midpoints <- (x_bins[-1] + x_bins[-length(x_bins)]) / 2
 
 mean_state_probs <- matrix(NA, nrow = length(bin_midpoints), ncol = N)
@@ -378,6 +381,11 @@ for (state in 1:N) {
 
 #dev.off()
 
+# state occupancy probabilities at 30 degrees (BB Approach)
+which(round(x_bins)==30)
+mean_state_probs[30,]
+
+
 # Dirichlet regression ----
 
 system.time(
@@ -404,6 +412,9 @@ for (state in 1:N) {
   lines(x_p, Mean[,state], col = darker_col, lwd = 3, lty = 1)
 }
 #dev.off()
+
+which(round(x_p, 2)==30)
+Mean[133,]
 
 # or by using this function that generates the plot automatically
 apply_dir_reg(y=Delta,x=z,N=3, covname="temp")
