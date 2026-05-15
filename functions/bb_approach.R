@@ -25,12 +25,12 @@ compStateProbs <- function(z, beta, n) {
 }
 
 
-simOneBB <- function(n, rho, mu, sig, beta, periodic, par, num_covsim) {
+simOneBB <- function(n, rho, mu, sig, beta, periodic, par, num_covsim, blocklength=24) {
   
   sim <- simCovHMM(n = n, rho = rho, mu = mu, sig = sig, beta = beta, periodic = periodic)
   fit <- fitCovHMM(par = par, x = sim$x, Z = matrix(sim$z))
   
-  sim_z <- mclapply(1:num_covsim, function(i) block_bootstrap(sim$z, 24, n), mc.cores = max(1, detectCores() - 2))
+  sim_z <- mclapply(1:num_covsim, function(i) block_bootstrap(sim$z, blocklength, n), mc.cores = max(1, detectCores() - 2))
   sim_z <- do.call(cbind, sim_z)
   
   sim_delta <- mclapply(1:num_covsim, function(i) compStateProbs(sim_z[, i], fit$beta, n=n), mc.cores = max(1, detectCores() - 2))
