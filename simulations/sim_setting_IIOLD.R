@@ -1,4 +1,4 @@
-## Simulation experiments: Setting I (highly persistent covariate following an AR(1) process)
+## Simulation experiments: Setting II
 
 # Functions and libraries ----
 
@@ -11,16 +11,16 @@ source("functions/sim_study.r")
 colour = c("orange", "skyblue", "seagreen")
 
 # Parameters ----
-N <- 3 # number of states
-n <- 2000 # dimension of simulated dataset (length of time series)
+N <- 3 
+n <- 2000 
 num_simulations <- 200 # number of simulated datasets 
-rho <- 0.95 # highly persistent covariate
+rho <- 0.7 # moderately persistent covariate 
 epsilon <- sqrt(1 - rho^2)
-periodic <- FALSE # is the covariate periodic? 
+periodic <- FALSE
 
 
-mu <- c(6, 15, 20) # state-dependent means
-sig = c(3, 1.5, 1.5) # state-dependent standard deviations
+mu <- c(6, 15, 20)
+sig = c(3, 1.5, 1.5)
 
 beta <- matrix(c( 1, 2,   # 1-> 2
                   1, -2.5,  # 1-> 3
@@ -30,17 +30,18 @@ beta <- matrix(c( 1, 2,   # 1-> 2
                   1, 1), # 3-> 2
                nrow = 6, byrow = TRUE)
 
-# Simulation
+par = c(beta = c(rep(-1, 6), rep(0,6)),
+        logitdelta = c(0,1), 
+        mu = mu, 
+        sig = sig)
+
 sim <-  simCovHMM(n=n, rho=rho, mu=mu, sig=sig, beta=beta, periodic=periodic)
-
-par = c(beta = c(
-  rep(-1, 6), rep(0,6)),
-  logitdelta = c(0,1), 
-  mu = c(6, 15, 20), 
-  sig = c(log(3),log(3),log(3))
-)
-
+par = c(beta = c(rep(-1, 6), rep(0,6)),
+        logitdelta = c(0,1), 
+        mu = c(6, 15, 20), 
+        sig = c(log(3),log(3),log(3)))
 fit <- fitCovHMM(par=par, x=sim$x, Z=matrix(sim$z))
+
 
 Gamma <- tpm_g(sim$z, beta)
 Delta <- matrix(NA, n, N)
@@ -198,7 +199,7 @@ par(mfrow=c(1,2))
 
 plot(NULL, ylim = c(0, 1),
      xlab = "covariate value z", ylab = "Pr(state i | z), i=1,2,3",
-     main = "AR resampling (Setting I)", bty = "n",
+     main = "AR resampling (Setting II)", bty = "n",
      xlim = c(-4, 4))
 
 for (i in 1:num_simulations) {
@@ -212,7 +213,7 @@ lines(ksmooth(bin_midpointsGT1, mean_stateprobsGT1[, 3], "normal", bandwidth = 1
 
 plot(NULL, ylim = c(0, 1),
      xlab = "covariate value z", ylab = "Pr(state i | z), i=1,2,3",
-     main = "Hypothetical stationary distribution (Setting I)", bty = "n",
+     main = "Hypothetical stationary distribution (Setting II)", bty = "n",
      xlim = c(-4, 4))
 
 for (i in 1:num_simulations) {
@@ -259,7 +260,7 @@ ks3_1 <- ksmooth(bin_midpointsGT1, mean_stateprobsGT1[, 3], "normal", bandwidth 
 cut3_1 <- trim_to_range(ks3_1$x, ks3_1$y)
 
 
-#par(mfrow=c(1,3), mgp = c(1.8, 0.5, 0), mar=c(3, 3, 1,1), cex.lab=1.3, cex.main=1.3)
+par(mfrow=c(1,3), mgp = c(1.8, 0.5, 0), mar=c(3, 3, 1,1), cex.lab=1.3, cex.main=1.3)
 plot(NULL, ylim = c(0, 1),
      xlab = "covariate value z", ylab = "Pr(state i | z), i=1,2,3", main = "Setting (I)", bty = "n", 
      xlim=c(-4, 4))
@@ -276,35 +277,35 @@ lines(cut3_1$x, cut3_1$y, col = colour[3], lwd = 3)
 legend("topleft",col = c(colour, "transparent"),lwd = 3,bty = "n",
        lty = c(1,1,1),legend = expression(state~1, state~2, state~3))
 
-# plot(NULL, ylim = c(0, 1),
-#      xlab = "covariate value z", ylab = "Pr(state i | z), i=1,2,3", main = "Setting (II)", bty = "n", 
-#      xlim=c(-4, 4))
-# 
-# for (i in 1:num_simulations) {
-#   lines(gamcurve2$State1[[i]]$x, gamcurve2$State1[[i]]$y, col = alpha(colour[1], 0.1), lwd = 1)
-#   lines(gamcurve2$State2[[i]]$x, gamcurve2$State2[[i]]$y, col = alpha(colour[2], 0.1), lwd = 1)
-#   lines(gamcurve2$State3[[i]]$x, gamcurve2$State3[[i]]$y, col = alpha(colour[3], 0.1), lwd = 1)
-# }
-# 
-# 
-# lines(cut1$x, cut1$y, col = colour[1], lwd = 3)
-# lines(cut2$x, cut2$y, col = colour[2], lwd = 3)
-# lines(cut3$x, cut3$y, col = colour[3], lwd = 3)
-# 
-# 
-# plot(NULL, ylim = c(0, 1),
-#      xlab = "covariate value z", ylab = "Pr(state i | z), i=1,2,3", main = "Setting (III)", bty = "n", 
-#      xlim=c(-8, 8))
-# 
-# for (i in 1:num_simulations) {
-#   lines(gamcurve3$State1[[i]]$x, gamcurve3$State1[[i]]$y, col = alpha(colour[1], 0.1), lwd = 1)
-#   lines(gamcurve3$State2[[i]]$x, gamcurve3$State2[[i]]$y, col = alpha(colour[2], 0.1), lwd = 1)
-#   lines(gamcurve3$State3[[i]]$x, gamcurve3$State3[[i]]$y, col = alpha(colour[3], 0.1), lwd = 1)
-# }
-# 
-# lines(cut1_3$x, cut1_3$y, col = colour[1], lwd = 3)
-# lines(cut2_3$x, cut2_3$y, col = colour[2], lwd = 3)
-# lines(cut3_3$x, cut3_3$y, col = colour[3], lwd = 3)
+plot(NULL, ylim = c(0, 1),
+     xlab = "covariate value z", ylab = "Pr(state i | z), i=1,2,3", main = "Setting (II)", bty = "n", 
+     xlim=c(-4, 4))
+
+for (i in 1:num_simulations) {
+  lines(gamcurve2$State1[[i]]$x, gamcurve2$State1[[i]]$y, col = alpha(colour[1], 0.1), lwd = 1)
+  lines(gamcurve2$State2[[i]]$x, gamcurve2$State2[[i]]$y, col = alpha(colour[2], 0.1), lwd = 1)
+  lines(gamcurve2$State3[[i]]$x, gamcurve2$State3[[i]]$y, col = alpha(colour[3], 0.1), lwd = 1)
+}
+
+
+lines(cut1$x, cut1$y, col = colour[1], lwd = 3)
+lines(cut2$x, cut2$y, col = colour[2], lwd = 3)
+lines(cut3$x, cut3$y, col = colour[3], lwd = 3)
+
+
+plot(NULL, ylim = c(0, 1),
+     xlab = "covariate value z", ylab = "Pr(state i | z), i=1,2,3", main = "Setting (III)", bty = "n", 
+     xlim=c(-8, 8))
+
+for (i in 1:num_simulations) {
+  lines(gamcurve3$State1[[i]]$x, gamcurve3$State1[[i]]$y, col = alpha(colour[1], 0.1), lwd = 1)
+  lines(gamcurve3$State2[[i]]$x, gamcurve3$State2[[i]]$y, col = alpha(colour[2], 0.1), lwd = 1)
+  lines(gamcurve3$State3[[i]]$x, gamcurve3$State3[[i]]$y, col = alpha(colour[3], 0.1), lwd = 1)
+}
+
+lines(cut1_3$x, cut1_3$y, col = colour[1], lwd = 3)
+lines(cut2_3$x, cut2_3$y, col = colour[2], lwd = 3)
+lines(cut3_3$x, cut3_3$y, col = colour[3], lwd = 3)
 
 
 ### BB Approach ----
@@ -316,7 +317,7 @@ results_1BB <- with_progress({
   lapply(1:num_simulations, function(i) {
     res <- simOneBB(n = n, rho = rho, mu = mu, sig = sig,
                     beta = beta, periodic = periodic, par = par,
-                    num_covsim = num_covsim, blocklength=40)
+                    num_covsim = num_covsim, blocklength=20)
     p(message = sprintf("Done %d/%d", i, num_simulations))
     res
   })
@@ -330,7 +331,7 @@ for (i in 1:num_simulations) {
 }
 
 plot(NULL, ylim = c(0, 1),
-     xlab = "covariate value z", ylab = "Pr(state i | z), i=1,2,3", main = "Setting (I): BB resampling", bty = "n",
+     xlab = "covariate value z", ylab = "Pr(state i | z), i=1,2,3", main = "Setting (II): BB resampling", bty = "n",
      xlim=c(min(zGT1)+1, max(zGT1)-1))
 
 for (i in 1:num_simulations) {
