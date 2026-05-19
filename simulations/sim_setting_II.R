@@ -306,3 +306,43 @@ for (i in 1:num_simulations) {
 lines(cut1_3$x, cut1_3$y, col = colour[1], lwd = 3)
 lines(cut2_3$x, cut2_3$y, col = colour[2], lwd = 3)
 lines(cut3_3$x, cut3_3$y, col = colour[3], lwd = 3)
+
+
+### BB Approach ----
+num_covsim <- 500
+num_simulations <- 200
+
+results_1BB <- with_progress({
+  p <- progressor(steps = num_simulations)
+  lapply(1:num_simulations, function(i) {
+    res <- simOneBB(n = n, rho = rho, mu = mu, sig = sig,
+                    beta = beta, periodic = periodic, par = par,
+                    num_covsim = num_covsim, blocklength=20)
+    p(message = sprintf("Done %d/%d", i, num_simulations))
+    res
+  })
+})
+
+curve_1BB <- list(State1 = list(), State2 = list(), State3 = list())
+for (i in 1:num_simulations) {
+  curve_1BB$State1[[i]] <- results_1BB[[i]]$State1
+  curve_1BB$State2[[i]] <- results_1BB[[i]]$State2
+  curve_1BB$State3[[i]] <- results_1BB[[i]]$State3
+}
+
+plot(NULL, ylim = c(0, 1),
+     xlab = "covariate value z", ylab = "Pr(state i | z), i=1,2,3", main = "Setting (II): BB resampling", bty = "n",
+     xlim=c(min(zGT1)+1, max(zGT1)-1))
+
+for (i in 1:num_simulations) {
+  lines(curve_1BB$State1[[i]]$x, curve_1BB$State1[[i]]$y, col = alpha(colour[1], 0.1), lwd = 1)
+  lines(curve_1BB$State2[[i]]$x, curve_1BB$State2[[i]]$y, col = alpha(colour[2], 0.1), lwd = 1)
+  lines(curve_1BB$State3[[i]]$x, curve_1BB$State3[[i]]$y, col = alpha(colour[3], 0.1), lwd = 1)
+}
+lines(ksmooth(bin_midpointsGT1, mean_stateprobsGT1[, 1], "normal", bandwidth = 1), col = colour[1], lwd = 3)
+lines(ksmooth(bin_midpointsGT1, mean_stateprobsGT1[, 2], "normal", bandwidth = 1), col = colour[2], lwd = 3)
+lines(ksmooth(bin_midpointsGT1, mean_stateprobsGT1[, 3], "normal", bandwidth = 1), col = colour[3], lwd = 3)
+legend("right", legend = c("state 1", "state 2", "state 3"),
+       col = c(colour), lwd = 2, bty = "n")
+
+

@@ -288,7 +288,7 @@ results_3BB <- with_progress({
   lapply(1:num_simulations, function(i) {
     res <- simOneBB(n = n, rho = rho, mu = mu, sig = sig,
                     beta = beta, periodic = periodic, par = par,
-                    num_covsim = num_covsim)
+                    num_covsim = num_covsim, blocklength = 24)
     p(message = sprintf("Done %d/%d", i, num_simulations))
     res
   })

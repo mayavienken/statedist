@@ -1,4 +1,4 @@
-## Simulation experiments: Setting I
+## Simulation experiments: Setting I (highly persistent covariate following an AR(1) process)
 
 # Functions and libraries ----
 
@@ -11,16 +11,16 @@ source("functions/sim_study.r")
 colour = c("orange", "skyblue", "seagreen")
 
 # Parameters ----
-N <- 3 
-n <- 2000 
+N <- 3 # number of states
+n <- 2000 # dimension of simulated dataset (length of time series)
 num_simulations <- 200 # number of simulated datasets 
 rho <- 0.95 # highly persistent covariate
 epsilon <- sqrt(1 - rho^2)
-periodic <- FALSE
+periodic <- FALSE # is the covariate periodic? 
 
 
-mu <- c(6, 15, 20)
-sig = c(3, 1.5, 1.5)
+mu <- c(6, 15, 20) # state-dependent means
+sig = c(3, 1.5, 1.5) # state-dependent standard deviations
 
 beta <- matrix(c( 1, 2,   # 1-> 2
                  1, -2.5,  # 1-> 3
@@ -30,18 +30,16 @@ beta <- matrix(c( 1, 2,   # 1-> 2
                  1, 1), # 3-> 2
               nrow = 6, byrow = TRUE)
 
-par = c(beta = c(rep(-1, 6), rep(0,6)),
-        logitdelta = c(0,1), 
-        mu = mu, 
-        sig = sig)
-
-
 # Simulation
 sim <-  simCovHMM(n=n, rho=rho, mu=mu, sig=sig, beta=beta, periodic=periodic)
-par = c(beta = c(rep(-1, 6), rep(0,6)),
-        logitdelta = c(0,1), 
-        mu = c(6, 15, 20), 
-        sig = c(log(3),log(3),log(3)))
+
+par = c(beta = c(
+  rep(-1, 6), rep(0,6)),
+  logitdelta = c(0,1), 
+  mu = c(6, 15, 20), 
+  sig = c(log(3),log(3),log(3))
+  )
+
 fit <- fitCovHMM(par=par, x=sim$x, Z=matrix(sim$z))
 
 Gamma <- tpm_g(sim$z, beta)
@@ -51,6 +49,10 @@ for (t in 2:n) Delta[t,] <- Delta[t-1,] %*% Gamma[,,t]
 
 
 ### GROUNDTRUTH (T=10,000,000) ----
+# simulate a very long covariate series from the same AR(1) process 
+# to obtain a smooth estimate of the true state occupancy distribution 
+# as a function of the covariate value (solid lines in figure)
+
 n_z = 10000000
 zGT2 = numeric(n_z)
 zGT2[1] = rnorm(1)
@@ -58,13 +60,16 @@ zGT2[1] = rnorm(1)
 for(t in 2:n_z){ zGT2[t] = rho * zGT2[t - 1] + rnorm(1, sd = sqrt(1 - rho^2))}
 zGT2=matrix(zGT2)
 
+# transition probability matrices (TPMs)
 GammaGT = tpm_g(zGT2, beta)
 delta = rep(1/3, 3) 
 
+# empirical state probabilities at each time point
 DeltaGT = matrix(NA, n_z, 3)
 DeltaGT[1,] = rep(1/3, 3)
 for(t in 2:n_z) DeltaGT[t,] = DeltaGT[t-1,] %*% GammaGT[,,t]
 
+# split covariate range into bins and compute mean state probabilities within each bin
 z_binsGT2 <- seq(min(zGT2), max(zGT2), length.out = 100)
 bin_midpointsGT2 <- (z_binsGT2[-1] + z_binsGT2[-length(z_binsGT2)]) / 2
 
@@ -310,6 +315,43 @@ for (i in 1:num_simulations) {
   lines(curve_2BB$State1[[i]]$x, curve_2BB$State1[[i]]$y, col = alpha(colour[1], 0.1), lwd = 1)
   lines(curve_2BB$State2[[i]]$x, curve_2BB$State2[[i]]$y, col = alpha(colour[2], 0.1), lwd = 1)
   lines(curve_2BB$State3[[i]]$x, curve_2BB$State3[[i]]$y, col = alpha(colour[3], 0.1), lwd = 1)
+}
+lines(ksmooth(bin_midpointsGT2, mean_stateprobsGT2[, 1], "normal", bandwidth = 1), col = colour[1], lwd = 3)
+lines(ksmooth(bin_midpointsGT2, mean_stateprobsGT2[, 2], "normal", bandwidth = 1), col = colour[2], lwd = 3)
+lines(ksmooth(bin_midpointsGT2, mean_stateprobsGT2[, 3], "normal", bandwidth = 1), col = colour[3], lwd = 3)
+legend("right", legend = c("state 1", "state 2", "state 3"),
+       col = c(colour), lwd = 2, bty = "n")
+
+
+num_covsim <- 2000
+num_simulations <- 200
+
+results_2BBb <- with_progress({
+  p <- progressor(steps = num_simulations)
+  lapply(1:num_simulations, function(i) {
+    res <- simOneBB(n = n, rho = rho, mu = mu, sig = sig,
+                    beta = beta, periodic = periodic, par = par,
+                    num_covsim = num_covsim, blocklength=40)
+    p(message = sprintf("Done %d/%d", i, num_simulations))
+    res
+  })
+})
+
+curve_2BBb <- list(State1 = list(), State2 = list(), State3 = list())
+for (i in 1:num_simulations) {
+  curve_2BBb$State1[[i]] <- results_2BBb[[i]]$State1
+  curve_2BBb$State2[[i]] <- results_2BBb[[i]]$State2
+  curve_2BBb$State3[[i]] <- results_2BBb[[i]]$State3
+}
+
+plot(NULL, ylim = c(0, 1),
+     xlab = "covariate value z", ylab = "Pr(state i | z), i=1,2,3", main = "Setting (I): BB resampling", bty = "n",
+     xlim=c(min(zGT2)+1, max(zGT2)-1))
+
+for (i in 1:num_simulations) {
+  lines(curve_2BBb$State1[[i]]$x, curve_2BBb$State1[[i]]$y, col = alpha(colour[1], 0.1), lwd = 1)
+  lines(curve_2BBb$State2[[i]]$x, curve_2BBb$State2[[i]]$y, col = alpha(colour[2], 0.1), lwd = 1)
+  lines(curve_2BBb$State3[[i]]$x, curve_2BBb$State3[[i]]$y, col = alpha(colour[3], 0.1), lwd = 1)
 }
 lines(ksmooth(bin_midpointsGT2, mean_stateprobsGT2[, 1], "normal", bandwidth = 1), col = colour[1], lwd = 3)
 lines(ksmooth(bin_midpointsGT2, mean_stateprobsGT2[, 2], "normal", bandwidth = 1), col = colour[2], lwd = 3)

@@ -1,4 +1,5 @@
 ### Script for creating plots for the paper (and talks) for further illustration
+
 source("functions/sim_fit_inhomogeneousHMM.r")
 source("functions/ar_approach.r")
 
@@ -235,7 +236,11 @@ par = c(beta = c(rep(-1, 6), rep(0,6)),
         mu = c(6, 15, 20), 
         sig = sig)
 
-ar_sim <- applyAr(sim_low, par, 250)
+par = c(beta = c(beta),
+        logitdelta = c(0,1), 
+        mu = mu, 
+        sig = log(sig))
+ar_sim <- applyAr(sim_low, par, 1000)
 
 
 #pdf("figures/bins_sim_cov.pdf", width=4, height=10)
@@ -269,20 +274,51 @@ points(1:1000, sim250, col=sim_colors, pch=16, cex=0.8)
 #dev.off()
 
 
-
-plot(ar_sim$result$State2$x, ar_sim$result$State2$y, type="l", col="red", ylim=c(0,1), xlab="covariate value z", ylab="Pr(state 1 | z)")
-
 par(mfrow=c(1,1), mar=c(4,4,2,1))
 plot_state_probs(z_low, Delta_low, zseq, Deltaseq,
                  "Setting II: low persistence")
-par = c(beta = c(beta),
-        logitdelta = c(0,1), 
-        mu = mu, 
-        sig = log(sig))
 
-ar_sim <- applyAr(sim_low, par, 550)
+ar_sim <- applyAr(sim_low, par, 200)
 
 plot(ar_sim$result$State1$x, ar_sim$result$State1$y, col=bin_colors, ylim=c(0,1), xlab="covariate value z", ylab="Pr(state i | z)", pch=19)
 points(ar_sim$result$State2$x, ar_sim$result$State2$y, col=bin_colors, pch=19)
 points(ar_sim$result$State3$x, ar_sim$result$State3$y, col=bin_colors, pch=19)
 
+ar_sim <- applyAr(sim_low, par, 400)
+
+par(mfrow=c(1,1), mar=c(4,4,2,3))
+col <- c("thistle", "lightblue", "lightpink")
+
+pdf("figures/paper_bins_state_probs.pdf", width=6, height=5)
+plot(ar_sim$result$State1$x, ar_sim$result$State1$y, type="n", ylim=c(0,1), 
+     xlab="covariate value z", ylab="Pr(state i | z)", bty="n")
+# for (state in 1:ncol(Delta_low)) {
+#   points(jitter(z_low, 0), Delta_low[, state],
+#          col = alpha(col[state], 0.1), pch = 20)}
+
+draw_smooth_gradient_line <- function(x, y, colors) {
+  valid <- !is.na(x) & !is.na(y)
+  x <- x[valid]
+  y <- y[valid]
+  
+  ord <- order(x)
+  x <- x[ord]
+  y <- y[ord]
+  
+  smoothed <- ksmooth(x, y, kernel="normal", bandwidth=1, x.points=x)
+  
+  for(i in 1:(length(smoothed$x)-1)) {
+    lines(smoothed$x[i:(i+1)], smoothed$y[i:(i+1)], col=colors[i], lwd=2)
+  }
+  
+  return(smoothed)
+}
+
+smooth1 <- draw_smooth_gradient_line(ar_sim$result$State1$x, ar_sim$result$State1$y, bin_colors)
+smooth2 <- draw_smooth_gradient_line(ar_sim$result$State2$x, ar_sim$result$State2$y, bin_colors)
+smooth3 <- draw_smooth_gradient_line(ar_sim$result$State3$x, ar_sim$result$State3$y, bin_colors)
+
+text(max(smooth1$x)-1, smooth1$y[length(smooth1$y)]+0.02, "State 1", pos=4, cex=1)
+text(max(smooth2$x)-1, smooth2$y[length(smooth2$y)]-0.02, "State 2", pos=4, cex=1)
+text(max(smooth3$x)-1, smooth3$y[length(smooth3$y)]+0.02, "State 3", pos=4, cex=1)
+dev.off()
