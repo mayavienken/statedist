@@ -275,9 +275,9 @@ for (i in 1:num_simulations) {
   lines(curve3AR$State2[[i]]$x, curve3AR$State2[[i]]$y, col = alpha(colour[2], 0.1), lwd = 1)
   lines(curve3AR$State3[[i]]$x, curve3AR$State3[[i]]$y, col = alpha(colour[3], 0.1), lwd = 1)
 }
-lines(ksmooth(bin_midpointsGT3, mean_stateprobsGT3[, 1], "normal", bandwidth = 5), col = colour[1], lwd = 3)
-lines(ksmooth(bin_midpointsGT3, mean_stateprobsGT3[, 2], "normal", bandwidth = 5), col = colour[2], lwd = 3)
-lines(ksmooth(bin_midpointsGT3, mean_stateprobsGT3[, 3], "normal", bandwidth = 5), col = colour[3], lwd = 3)
+lines(ksmooth(bin_midpointsGT3, mean_stateprobsGT3[, 1], "normal", bandwidth = 1), col = colour[1], lwd = 3)
+lines(ksmooth(bin_midpointsGT3, mean_stateprobsGT3[, 2], "normal", bandwidth = 1), col = colour[2], lwd = 3)
+lines(ksmooth(bin_midpointsGT3, mean_stateprobsGT3[, 3], "normal", bandwidth = 1), col = colour[3], lwd = 3)
 
 ### BB Approach ----
 num_covsim <- 2000

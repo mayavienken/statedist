@@ -8,8 +8,23 @@
 
 # pdf("./simulations/figures/ar_hypothetical_I_II.pdf", width=10, height=6)
 par(mfrow=c(2,2), cex.main=1.2, cex.lab=1.2, mar=c(4,3,1,1), mgp = c(1.8, 0.5, 0) )
+
 plot(NULL, ylim = c(0, 1),
-     xlab = "covariate value z", ylab = "Pr(state i | z), i=1,2,3", main="Setting (I): AR resampling", bty = "n",
+     xlab = "covariate value z", ylab = "Pr(state i | z), i=1,2,3",
+     main = "Setting (I): AR resampling", bty = "n",
+     xlim = c(-4, 4))
+
+for (i in 1:num_simulations) {
+  lines(curve1$State1[[i]]$x, curve1$State1[[i]]$y, col = alpha(colour[1], 0.1), lwd = 1)
+  lines(curve1$State2[[i]]$x, curve1$State2[[i]]$y, col = alpha(colour[2], 0.1), lwd = 1)
+  lines(curve1$State3[[i]]$x, curve1$State3[[i]]$y, col = alpha(colour[3], 0.1), lwd = 1)
+}
+lines(ksmooth(bin_midpointsGT1, mean_stateprobsGT1[, 1], "normal", bandwidth = 1), col = colour[1], lwd = 3)
+lines(ksmooth(bin_midpointsGT1, mean_stateprobsGT1[, 2], "normal", bandwidth = 1), col = colour[2], lwd = 3)
+lines(ksmooth(bin_midpointsGT1, mean_stateprobsGT1[, 3], "normal", bandwidth = 1), col = colour[3], lwd = 3)
+
+plot(NULL, ylim = c(0, 1),
+     xlab = "covariate value z", ylab = "Pr(state i | z), i=1,2,3", main="Setting (II): AR resampling", bty = "n",
      xlim = c(-4, 4))
 
 for (i in 1:num_simulations) {
@@ -24,14 +39,15 @@ legend("topleft",col = colour, lwd = 3,bty = "n",legend = expression(state~1, st
 
 plot(NULL, ylim = c(0, 1),
      xlab = "covariate value z", ylab = "Pr(state i | z), i=1,2,3",
-     main = "Setting (II): AR resampling", bty = "n",
+     main = "Setting (II): hypothetical stationary distribution", bty = "n",
      xlim = c(-4, 4))
 
 for (i in 1:num_simulations) {
-  lines(curve1$State1[[i]]$x, curve1$State1[[i]]$y, col = alpha(colour[1], 0.1), lwd = 1)
-  lines(curve1$State2[[i]]$x, curve1$State2[[i]]$y, col = alpha(colour[2], 0.1), lwd = 1)
-  lines(curve1$State3[[i]]$x, curve1$State3[[i]]$y, col = alpha(colour[3], 0.1), lwd = 1)
+  lines(hypothetical$State1[[i]]$x, hypothetical$State1[[i]]$y, col = alpha(colour[1], 0.1), lwd = 1)
+  lines(hypothetical$State2[[i]]$x, hypothetical$State2[[i]]$y, col = alpha(colour[2], 0.1), lwd = 1)
+  lines(hypothetical$State3[[i]]$x, hypothetical$State3[[i]]$y, col = alpha(colour[3], 0.1), lwd = 1)
 }
+
 lines(ksmooth(bin_midpointsGT1, mean_stateprobsGT1[, 1], "normal", bandwidth = 1), col = colour[1], lwd = 3)
 lines(ksmooth(bin_midpointsGT1, mean_stateprobsGT1[, 2], "normal", bandwidth = 1), col = colour[2], lwd = 3)
 lines(ksmooth(bin_midpointsGT1, mean_stateprobsGT1[, 3], "normal", bandwidth = 1), col = colour[3], lwd = 3)
@@ -50,21 +66,6 @@ for (i in 1:num_simulations) {
 lines(ksmooth(bin_midpointsGT2, mean_stateprobsGT2[, 1], "normal", bandwidth = 1), col = colour[1], lwd = 3)
 lines(ksmooth(bin_midpointsGT2, mean_stateprobsGT2[, 2], "normal", bandwidth = 1), col = colour[2], lwd = 3)
 lines(ksmooth(bin_midpointsGT2, mean_stateprobsGT2[, 3], "normal", bandwidth = 1), col = colour[3], lwd = 3)
-
-plot(NULL, ylim = c(0, 1),
-     xlab = "covariate value z", ylab = "Pr(state i | z), i=1,2,3",
-     main = "Setting (II): hypothetical stationary distribution", bty = "n",
-     xlim = c(-4, 4))
-
-for (i in 1:num_simulations) {
-  lines(hypothetical$State1[[i]]$x, hypothetical$State1[[i]]$y, col = alpha(colour[1], 0.1), lwd = 1)
-  lines(hypothetical$State2[[i]]$x, hypothetical$State2[[i]]$y, col = alpha(colour[2], 0.1), lwd = 1)
-  lines(hypothetical$State3[[i]]$x, hypothetical$State3[[i]]$y, col = alpha(colour[3], 0.1), lwd = 1)
-}
-
-lines(ksmooth(bin_midpointsGT1, mean_stateprobsGT1[, 1], "normal", bandwidth = 1), col = colour[1], lwd = 3)
-lines(ksmooth(bin_midpointsGT1, mean_stateprobsGT1[, 2], "normal", bandwidth = 1), col = colour[2], lwd = 3)
-lines(ksmooth(bin_midpointsGT1, mean_stateprobsGT1[, 3], "normal", bandwidth = 1), col = colour[3], lwd = 3)
 
 # dev.off()
 
@@ -163,39 +164,48 @@ lines(cut3_3$x, cut3_3$y, col = colour[3], lwd = 3)
 par(mfrow=c(1,3), mgp = c(1.8, 0.5, 0), mar=c(3, 3, 1,1), cex.lab=1.3, cex.main=1.3)
 # Setting I
 plot(NULL, ylim = c(0, 1),
-     xlab = "covariate value z", ylab = "Pr(state i | z), i=1,2,3", main = "Setting (I)", bty = "n", 
-     xlim=c(-4, 4))
+     xlab = "covariate value z", ylab = "Pr(state i | z), i=1,2,3", main = "Setting (I): BB resampling", bty = "n",
+     xlim=c(min(zGT1)+1, max(zGT1)-1))
 
 for (i in 1:num_simulations) {
-  lines(gamcurve1$State1[[i]]$x, gamcurve1$State1[[i]]$y, col = alpha(colour[1], 0.1), lwd = 1)
-  lines(gamcurve1$State2[[i]]$x, gamcurve1$State2[[i]]$y, col = alpha(colour[2], 0.1), lwd = 1)
-  lines(gamcurve1$State3[[i]]$x, gamcurve1$State3[[i]]$y, col = alpha(colour[3], 0.1), lwd = 1)
+  lines(curve_1BB$State1[[i]]$x, curve_1BB$State1[[i]]$y, col = alpha(colour[1], 0.1), lwd = 1)
+  lines(curve_1BB$State2[[i]]$x, curve_1BB$State2[[i]]$y, col = alpha(colour[2], 0.1), lwd = 1)
+  lines(curve_1BB$State3[[i]]$x, curve_1BB$State3[[i]]$y, col = alpha(colour[3], 0.1), lwd = 1)
 }
-lines(cut1_1$x, cut1_1$y, col = colour[1], lwd = 3)
-lines(cut2_1$x, cut2_1$y, col = colour[2], lwd = 3)
-lines(cut3_1$x, cut3_1$y, col = colour[3], lwd = 3)
-legend("topleft",col = c(colour, "transparent"),lwd = 3,bty = "n",
-       lty = c(1,1,1),legend = expression(state~1, state~2, state~3))
+lines(ksmooth(bin_midpointsGT1, mean_stateprobsGT1[, 1], "normal", bandwidth = 1), col = colour[1], lwd = 3)
+lines(ksmooth(bin_midpointsGT1, mean_stateprobsGT1[, 2], "normal", bandwidth = 1), col = colour[2], lwd = 3)
+lines(ksmooth(bin_midpointsGT1, mean_stateprobsGT1[, 3], "normal", bandwidth = 1), col = colour[3], lwd = 3)
+
 
 # Setting II
 plot(NULL, ylim = c(0, 1),
-     xlab = "covariate value z", ylab = "Pr(state i | z), i=1,2,3", main = "Setting (II)", bty = "n", 
-     xlim=c(-4, 4))
+     xlab = "covariate value z", ylab = "Pr(state i | z), i=1,2,3", main = "Setting (II): BB resampling", bty = "n",
+     xlim=c(min(zGT2)+1, max(zGT2)-1))
 
+for (i in 1:num_simulations) {
+  lines(curve_2BB$State1[[i]]$x, curve_2BB$State1[[i]]$y, col = alpha(colour[1], 0.1), lwd = 1)
+  lines(curve_2BB$State2[[i]]$x, curve_2BB$State2[[i]]$y, col = alpha(colour[2], 0.1), lwd = 1)
+  lines(curve_2BB$State3[[i]]$x, curve_2BB$State3[[i]]$y, col = alpha(colour[3], 0.1), lwd = 1)
+}
+lines(ksmooth(bin_midpointsGT2, mean_stateprobsGT2[, 1], "normal", bandwidth = 1), col = colour[1], lwd = 3)
+lines(ksmooth(bin_midpointsGT2, mean_stateprobsGT2[, 2], "normal", bandwidth = 1), col = colour[2], lwd = 3)
+lines(ksmooth(bin_midpointsGT2, mean_stateprobsGT2[, 3], "normal", bandwidth = 1), col = colour[3], lwd = 3)
 
 # Setting III
 plot(NULL, ylim = c(0, 1),
-     xlab = "covariate value z", ylab = "Pr(state i | z), i=1,2,3", main = "Setting (III)", bty = "n", 
-     xlim=c(-8, 8))
+     xlab = "covariate value z", ylab = "Pr(state i | z), i=1,2,3", main = "Setting (III): BB resampling", bty = "n",
+     xlim=c(min(zGT3)+1, max(zGT3)-1))
 
 for (i in 1:num_simulations) {
-  lines(gamcurve3$State1[[i]]$x, gamcurve3$State1[[i]]$y, col = alpha(colour[1], 0.1), lwd = 1)
-  lines(gamcurve3$State2[[i]]$x, gamcurve3$State2[[i]]$y, col = alpha(colour[2], 0.1), lwd = 1)
-  lines(gamcurve3$State3[[i]]$x, gamcurve3$State3[[i]]$y, col = alpha(colour[3], 0.1), lwd = 1)
+  lines(curve_3BB$State1[[i]]$x, curve_3BB$State1[[i]]$y, col = alpha(colour[1], 0.1), lwd = 1)
+  lines(curve_3BB$State2[[i]]$x, curve_3BB$State2[[i]]$y, col = alpha(colour[2], 0.1), lwd = 1)
+  lines(curve_3BB$State3[[i]]$x, curve_3BB$State3[[i]]$y, col = alpha(colour[3], 0.1), lwd = 1)
 }
-lines(cut1_3$x, cut1_3$y, col = colour[1], lwd = 3)
-lines(cut2_3$x, cut2_3$y, col = colour[2], lwd = 3)
-lines(cut3_3$x, cut3_3$y, col = colour[3], lwd = 3)
+lines(ksmooth(bin_midpointsGT3, mean_stateprobsGT3[, 1], "normal", bandwidth = 1), col = colour[1], lwd = 3)
+lines(ksmooth(bin_midpointsGT3, mean_stateprobsGT3[, 2], "normal", bandwidth = 1), col = colour[2], lwd = 3)
+lines(ksmooth(bin_midpointsGT3, mean_stateprobsGT3[, 3], "normal", bandwidth = 1), col = colour[3], lwd = 3)
+legend("right", legend = c("state 1", "state 2", "state 3"),
+       col = c(colour), lwd = 2, bty = "n")
 
 # dev.off()
 
