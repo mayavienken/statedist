@@ -178,6 +178,13 @@ mu1 = 0
 #pdf("figures/paper_paths_hypothetical_real_fade.pdf", width=7, height=3)
 par(mfrow=c(1,2), mar=c(3,1,1,1))
 
+k <- 20 
+B <- 100 # number of paths to simulate
+y <- sim_low$z[81:100]
+x0 <- sim_low$z[100]
+par <- cond_dist_ARp(mu1, sigma_hat, phi_hat, k, x0)
+xsim <- mvtnorm::rmvnorm(B, par$mu_cond, par$Sigma_cond)
+paths <- cbind(xsim, rep(x0,B))
 ylim <- range(c(y, paths))
 # colours are brightening the further we go in past, to illustrate the decreasing influence of past values
 #cols <- colorRampPalette(c("skyblue", "darkblue"))(20)
@@ -191,12 +198,6 @@ points(1:20, y,pch = 16,col = "white",cex = 1)
 points(1:20, y, pch = 16, col = cols, cex = 1)
 
 y <- sim_low$z[81:100]
-
-k <- 20 
-B <- 100 # number of paths to simulate
-par <- cond_dist_ARp(mu1, sigma_hat, phi_hat, k, x0)
-xsim <- mvtnorm::rmvnorm(B, par$mu_cond, par$Sigma_cond)
-paths <- cbind(xsim, rep(x0,B))
 
 # actual covariate path + alternative paths backsampled from fitted AR model, for given time point
 plot(ts(y), type="n", axes=FALSE, ann=FALSE, bty="n", ylim=ylim)
@@ -220,7 +221,7 @@ point_colors <- bin_colors[as.numeric(z_bins)]
 
 # pdf("figures/bins_orig_cov.pdf", width=6, height=5)
 par(mar = c(4, 4, 3, 2), cex.lab = 1.3, cex.axis = 1.1)
-plot(1:(n/2), sim_low$z[1:1000], type = "n",xlab = "time",ylab = " z",
+plot(1:(n/2), sim_low$z[1:1000], type = "n",xlab = "time",ylab = "covariate value z",
      main = "",cex.main = 1.2,bty = "l", ylim=c(min(sim_low$z)-0.2, max(sim_low$z)+0.2))
 abline(h=z_breaks, col="gray90", lty=1)
 
@@ -278,23 +279,13 @@ par(mfrow=c(1,1), mar=c(4,4,2,1))
 plot_state_probs(z_low, Delta_low, zseq, Deltaseq,
                  "Setting II: low persistence")
 
-ar_sim <- applyAr(sim_low, par, 200)
-
-plot(ar_sim$result$State1$x, ar_sim$result$State1$y, col=bin_colors, ylim=c(0,1), xlab="covariate value z", ylab="Pr(state i | z)", pch=19)
-points(ar_sim$result$State2$x, ar_sim$result$State2$y, col=bin_colors, pch=19)
-points(ar_sim$result$State3$x, ar_sim$result$State3$y, col=bin_colors, pch=19)
-
 ar_sim <- applyAr(sim_low, par, 400)
 
-par(mfrow=c(1,1), mar=c(4,4,2,3))
-col <- c("thistle", "lightblue", "lightpink")
+par(mfrow=c(1,1), mar=c(4,4,2,4), cex.lab = 1.3, cex.axis = 1.1)
 
-pdf("figures/paper_bins_state_probs.pdf", width=6, height=5)
+# pdf("figures/paper_bins_state_probs.pdf", width=6, height=5)
 plot(ar_sim$result$State1$x, ar_sim$result$State1$y, type="n", ylim=c(0,1), 
-     xlab="covariate value z", ylab="Pr(state i | z)", bty="n")
-# for (state in 1:ncol(Delta_low)) {
-#   points(jitter(z_low, 0), Delta_low[, state],
-#          col = alpha(col[state], 0.1), pch = 20)}
+     xlab="covariate value z", ylab="Pr(state i | z)",bty = "l", cex.main = 1.2)
 
 draw_smooth_gradient_line <- function(x, y, colors) {
   valid <- !is.na(x) & !is.na(y)
@@ -318,7 +309,8 @@ smooth1 <- draw_smooth_gradient_line(ar_sim$result$State1$x, ar_sim$result$State
 smooth2 <- draw_smooth_gradient_line(ar_sim$result$State2$x, ar_sim$result$State2$y, bin_colors)
 smooth3 <- draw_smooth_gradient_line(ar_sim$result$State3$x, ar_sim$result$State3$y, bin_colors)
 
-text(max(smooth1$x)-1, smooth1$y[length(smooth1$y)]+0.02, "State 1", pos=4, cex=1)
-text(max(smooth2$x)-1, smooth2$y[length(smooth2$y)]-0.02, "State 2", pos=4, cex=1)
-text(max(smooth3$x)-1, smooth3$y[length(smooth3$y)]+0.02, "State 3", pos=4, cex=1)
-dev.off()
+text(max(smooth1$x)-1.1, smooth1$y[length(smooth1$y)]+0.03, "State 1", pos=4, cex=1)
+text(max(smooth2$x)-1.1, smooth2$y[length(smooth2$y)]-0.03, "State 2", pos=4, cex=1)
+text(max(smooth3$x)-1.1, smooth3$y[length(smooth3$y)]+0.03, "State 3", pos=4, cex=1)
+# dev.off()
+
