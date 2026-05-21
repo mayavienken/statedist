@@ -336,50 +336,58 @@ Deltaseq[133,]
 # as complete temperature time series shows strong seasonal patterns we fit a simple model 
 # to capture this seasonality and then apply block bootstrap to the residuals 
 df.animal$doy <- as.numeric(format(df.animal$timestamp, "%j"))
-mod_lm <- lm(temperature ~ sin((2*pi*doy)/365) + cos((2*pi*doy)/365), data=df.animal)
 
-### plot(mod_lm$residuals, type="l")
+system.time({
+  mod_lm <- lm(temperature ~ sin((2*pi*doy)/365) + cos((2*pi*doy)/365), data=df.animal)
+  
+  ### plot(mod_lm$residuals, type="l")
+  
+  simulated_x <- mclapply(1:100, function(i) block_bootstrap(mod_lm$residuals, 24, n), mc.cores = max(1, detectCores() - 2))
+  simulated_x <- do.call(cbind, simulated_x)
+  simulated_x <- simulated_x + mod_lm$fitted.values
+  
+  sim_delta <- future_lapply(1:100,
+    function(i) compStateProbs(simulated_x[, i], mod.rtmb$beta, n=length(simulated_x[,1])))
+  sim_delta <- array(unlist(sim_delta), dim = c(n, N, 100))
+  
+  x_bins <- seq(min(simulated_x)-1, max(simulated_x)+1, length.out = 50)
+  bin_midpoints <- (x_bins[-1] + x_bins[-length(x_bins)]) / 2
+  
+  mean_state_probs <- matrix(NA, nrow = length(bin_midpoints), ncol = N)
+  for (state in 1:N) {
+    mean_state_probs[, state] <- sapply(1:(length(x_bins) - 1), function(b) {
+      mean(sim_delta[, state, ][simulated_x >= x_bins[b] & simulated_x < x_bins[b + 1]], na.rm = TRUE)
+    })
+  }
+  mean_state_probs <- na.approx(mean_state_probs)
+  
+  #pdf("./case_study_tortoises/figures/bb_approach.pdf", width=6, height=4)
+  par(mfrow = c(1,1), mgp = c(1.8, 0.5, 0), mar=c(3, 3, 1,1), cex.lab=1.3) 
+  plot(z, Delta[, 1],
+       xlim = c(min(z),max(z)), ylim = c(0, 1),
+       pch = 16, col = alpha(colour[1], 0),
+       bty = "n", ylab = "Pr(state i | temp), i=1,2,3",
+       xlab = "temperature", main="BB resampling")
+  for (state in 1:N) {
+    points(jitter(z, factor = 0), Delta[, state], col = alpha(colour[state], 0.1), pch = 16)
+  }
+  for (state in 1:N) {
+    darker_col <- adjustcolor(colour[state], red.f = 0.9, green.f = 0.9, blue.f = 0.9, alpha.f = 1)
+    lines(ksmooth(bin_midpoints, mean_state_probs[,state], "normal", bandwidth = 5), col = "white", lwd = 7, lty = 1)
+    lines(ksmooth(bin_midpoints, mean_state_probs[,state], "normal", bandwidth = 5), 
+          col = darker_col, lwd = 3)
+  }
+  #legend("topright",col = c(colour, "transparent", "black"),
+  #       pch = c(16, 16, 16, NA, NA), lty = c(NA, NA, NA, NA, 1),   
+  #       lwd = 3, bty = "n", legend = expression(state~1, state~2, state~3, "", delta))
+  
+  #dev.off()
+})
 
-simulated_x <- mclapply(1:100, function(i) block_bootstrap(mod_lm$residuals, 24, n), mc.cores = max(1, detectCores() - 2))
-simulated_x <- do.call(cbind, simulated_x)
-simulated_x <- simulated_x + mod_lm$fitted.values
+## Runtime BB-approach case study (Apple M4, 16GB RAM)
+# user  system elapsed 
+# 3.869   0.866   4.081 
 
-sim_delta <- future_lapply(1:100,
-  function(i) compStateProbs(simulated_x[, i], mod.rtmb$beta, n=length(simulated_x[,1])))
-sim_delta <- array(unlist(sim_delta), dim = c(n, N, 100))
-
-x_bins <- seq(min(simulated_x)-1, max(simulated_x)+1, length.out = 50)
-bin_midpoints <- (x_bins[-1] + x_bins[-length(x_bins)]) / 2
-
-mean_state_probs <- matrix(NA, nrow = length(bin_midpoints), ncol = N)
-for (state in 1:N) {
-  mean_state_probs[, state] <- sapply(1:(length(x_bins) - 1), function(b) {
-    mean(sim_delta[, state, ][simulated_x >= x_bins[b] & simulated_x < x_bins[b + 1]], na.rm = TRUE)
-  })
-}
-mean_state_probs <- na.approx(mean_state_probs)
-
-#pdf("./case_study_tortoises/figures/bb_approach.pdf", width=6, height=4)
-par(mfrow = c(1,1), mgp = c(1.8, 0.5, 0), mar=c(3, 3, 1,1), cex.lab=1.3) 
-plot(z, Delta[, 1],
-     xlim = c(min(z),max(z)), ylim = c(0, 1),
-     pch = 16, col = alpha(colour[1], 0),
-     bty = "n", ylab = "Pr(state i | temp), i=1,2,3",
-     xlab = "temperature", main="BB resampling")
-for (state in 1:N) {
-  points(jitter(z, factor = 0), Delta[, state], col = alpha(colour[state], 0.1), pch = 16)
-}
-for (state in 1:N) {
-  darker_col <- adjustcolor(colour[state], red.f = 0.9, green.f = 0.9, blue.f = 0.9, alpha.f = 1)
-  lines(ksmooth(bin_midpoints, mean_state_probs[,state], "normal", bandwidth = 5), col = "white", lwd = 7, lty = 1)
-  lines(ksmooth(bin_midpoints, mean_state_probs[,state], "normal", bandwidth = 5), 
-        col = darker_col, lwd = 3)
-}
-#legend("topright",col = c(colour, "transparent", "black"),
-#       pch = c(16, 16, 16, NA, NA), lty = c(NA, NA, NA, NA, 1),   
-#       lwd = 3, bty = "n", legend = expression(state~1, state~2, state~3, "", delta))
-
-#dev.off()
 
 # state occupancy probabilities at 30 degrees (BB Approach)
 which(round(x_bins)==30)
@@ -388,9 +396,7 @@ mean_state_probs[30,]
 
 # Dirichlet regression ----
 
-system.time(
-  mod <- dir_reg(Delta, z, k = 8, bs="tp", lambda0=100)
-)
+mod <- dir_reg(Delta, z, k = 8, bs="tp", lambda0=100)
 
 summary(mod)
 x_p <- seq(min(z)-0.5, max(z)+0.5, length = 200)
@@ -417,7 +423,11 @@ which(round(x_p, 2)==30)
 Mean[133,]
 
 # or by using this function that generates the plot automatically
-apply_dir_reg(y=Delta,x=z,N=3, covname="temp")
+system.time(apply_dir_reg(y=Delta,x=z,N=3, covname="temp"))
+
+## Runtime Dirichlet regression approach case study (Apple M4, 16GB RAM)
+# user  system elapsed 
+# 2.209   0.010   2.252 
 
 # CI BB approach ----
 nCI <- 1000
