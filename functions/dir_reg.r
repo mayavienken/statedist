@@ -79,7 +79,7 @@ dir_reg <- function(y, x, k = 10, bs = "tp", lambda0 = 1e3, alpha = 0.1, silent 
 # (observed state probabilities as transparent points, fitted smooth means
 # overlaid as solid curves)
 apply_dir_reg <- function(y, x, k = 8, bs = "tp", lambda0 = 100, 
-                          colour = c("orange", "skyblue", "seagreen", "orchid", "steelblue", "coral"), 
+                          colour = c("orange", "skyblue", "seagreen"), 
                           N, x_range_extension = 0.5, covname="covariate") {
   
   # fit Dirichlet regression model
@@ -109,7 +109,7 @@ apply_dir_reg <- function(y, x, k = 8, bs = "tp", lambda0 = 100,
   # overlay fitted smooth curves
   for (state in 1:N) {
     darker_col <- adjustcolor(colour[state], red.f = 0.9, green.f = 0.9, blue.f = 0.9,
-                              orchid.f = 0.9, steelblue.f = 0.9, coral.f = 0.9, alpha.f = 1)
+                              alpha.f = 1)
     lines(x_p, Mean[, state], col = "white", lwd = 7, lty = 1)
     lines(x_p, Mean[, state], col = darker_col, lwd = 3, lty = 1)
   }
