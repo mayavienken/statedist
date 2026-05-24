@@ -11,6 +11,7 @@ source("functions/sim_study.r")
 colour = c("orange", "skyblue", "seagreen")
 
 # Parameters ----
+set.seed(22)
 N <- 3 
 n <- 2000 # dimension of simulated dataset (length of time series)
 num_simulations <- 200 # number of simulated datasets 
@@ -114,7 +115,7 @@ for(t in 1:length(zseqGT2)) DeltaseqGT2[t,] = LaMa::stationary(GammaseqGT2[,,t])
 # hypothetical stationary distribution (dashed lines) vs. true state occupancy distribution (solid lines)
 #pdf("./simulations/figures/true_state_occup_dist_I.pdf", width=7, height=4)
 par(mfrow=c(1,1), mar=c(4,4,1,1))
-plot(ksmooth(bin_midpointsGT2, mean_stateprobsGT2[, 1], "normal", bandwidth=1), col = colour[1], lwd = 3, ylab = "Pr(state i | z), i=1,2,3", 
+plot(ksmooth(bin_midpointsGT2, mean_stateprobsGT2[, 1], "normal", bandwidth=1), col = colour[1], lwd = 3, ylab = "Pr(state | z)", 
      xlab = "covariate value z", main = "", ylim=c(0,1), type="l", bty="n", xlim=c(-5,5.5))
 lines(ksmooth(bin_midpointsGT2, mean_stateprobsGT2[, 2], "normal", bandwidth = 1), col = colour[2], lwd = 3)
 lines(ksmooth(bin_midpointsGT2, mean_stateprobsGT2[, 3], "normal", bandwidth = 1), col = colour[3], lwd = 3)
@@ -149,7 +150,7 @@ for (i in 1:num_simulations) {
 }
 
 plot(NULL, ylim = c(0, 1),
-     xlab = "covariate value z", ylab = "Pr(state i|z), i=1,2,3", main = "", bty = "n",
+     xlab = "covariate value z", ylab = "Pr(state | z)", main = "", bty = "n",
      xlim=c(-4, 4))
 
 for (i in 1:num_simulations) {
@@ -210,7 +211,7 @@ for (i in 1:num_simulations) {
 
 par(mfrow=c(1,2))
 plot(NULL, ylim = c(0, 1),
-     xlab = "covariate value z", ylab = "Pr(state i | z), i=1,2,3", main="Setting (II): AR resampling", bty = "n",
+     xlab = "covariate value z", ylab = "Pr(state | z)", main="Setting (II): AR resampling", bty = "n",
      xlim = c(-4, 4))
 
 for (i in 1:num_simulations) {
@@ -224,7 +225,7 @@ lines(ksmooth(bin_midpointsGT2, mean_stateprobsGT2[, 3], "normal", bandwidth = 1
 legend("topleft",col = colour, lwd = 3,bty = "n",legend = expression(state~1, state~2, state~3), cex=1.3)
 
 plot(NULL, ylim = c(0, 1),
-     xlab = "covariate value z", ylab = "Pr(state i | z), i=1,2,3",
+     xlab = "covariate value z", ylab = "Pr(state | z)",
      main = "Setting (II): hypothetical stationary distribution", bty = "n",
      xlim = c(-4, 4))
 
@@ -272,7 +273,7 @@ cut3 <- trim_to_range(ks3$x, ks3$y)
 
 par(mfrow=c(1,1), mar=c(4,4,1,1))
 plot(NULL, ylim = c(0, 1),
-     xlab = "covariate value z", ylab = "Pr(state i|z), i=1,2,3", main = "", bty = "n", 
+     xlab = "covariate value z", ylab = "Pr(state | z)", main = "", bty = "n", 
      xlim=c(-4, 4))
 
 for (i in 1:num_simulations) {
@@ -310,7 +311,7 @@ for (i in 1:num_simulations) {
 }
 
 plot(NULL, ylim = c(0, 1),
-     xlab = "covariate value z", ylab = "Pr(state i | z), i=1,2,3", main = "Setting (II): BB resampling", bty = "n",
+     xlab = "covariate value z", ylab = "Pr(state | z)", main = "Setting (II): BB resampling", bty = "n",
      xlim=c(min(zGT2)+1, max(zGT2)-1))
 
 for (i in 1:num_simulations) {

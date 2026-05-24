@@ -116,8 +116,10 @@ lines(ksmooth(zseqGT1_s, DeltaseqGT1_s[, 3], "normal", bandwidth = 1), col = col
 
 
 ### AR -----
-
-num_covsim_s <- 400
+# note: here we added error handling to skip simulations that fail to converge
+# generally maximum of 1 or 2 out of 200 simulations fail 
+system.time({
+num_covsim_s <- 500
 num_simulations_s <- 200
 
 results_s <- with_progress({
@@ -181,12 +183,18 @@ legend("right",
          delta, 
          rho
        ))
+})
+## Runtime on Apple M4 with 16GB RAM
+# user   system   elapsed 
+# 276.538 278.940 408.712 
 
-#### AR and Hypothetical -----
-num_covsim_s <- 400
+#### AR and hypothetical -----
+
+system.time({
+num_covsim_s <- 500
 num_simulations_s <- 200
 
-# AR and Hypothetical with error handling
+# AR and hypothetical with error handling
 results1_s <- with_progress({
   p <- progressor(steps = num_simulations_s)
   successful_results <- list()
@@ -263,13 +271,19 @@ for (i in 1: length(results1_s)) {
 lines(ksmooth(bin_midpointsGT1_s, mean_stateprobsGT1_s[, 1], "normal", bandwidth = 1), col = colour_s[1], lwd = 3)
 lines(ksmooth(bin_midpointsGT1_s, mean_stateprobsGT1_s[, 2], "normal", bandwidth = 1), col = colour_s[2], lwd = 3)
 lines(ksmooth(bin_midpointsGT1_s, mean_stateprobsGT1_s[, 3], "normal", bandwidth = 1), col = colour_s[3], lwd = 3)
+})
+
+## Runtime: Apple M4 with 16GB RAM
+# user   system   elapsed 
+# 257.034 238.810 217.475 
 
 
-### Flexible Dirichlet Regression ----
+### Flexible Dirichlet regression ----
 
+system.time({
 num_simulations_s <- 200
 
-# Flexible Dirichlet Regression with error handling
+# flexible Dirichlet regression with error handling
 gam_results1_s <- with_progress({
   p <- progressor(steps = num_simulations_s)
   successful_results <- list()
@@ -333,13 +347,17 @@ lines(cut2_1_s$x, cut2_1_s$y, col = colour_s[2], lwd = 3)
 lines(cut3_1_s$x, cut3_1_s$y, col = colour_s[3], lwd = 3)
 legend("topleft",col = c(colour_s, "transparent"),lwd = 3,bty = "n",
        lty = c(1,1,1),legend = expression(state~1, state~2, state~3))
+})
+## Runtime: Apple M4 with 16GB RAM
+# user   system   elapsed 
+# 298.909   2.035 303.128 
 
-
-### BB Approach ----
-num_covsim_s <- 500
+### BB approach ----
+system.time({
+num_covsim_s <- 200
 num_simulations_s <- 200
 
-# BB Approach with error handling
+# BB approach with error handling
 results_1BB_s <- with_progress({
   p <- progressor(steps = num_simulations_s)
   successful_results <- list()
@@ -390,3 +408,7 @@ lines(ksmooth(bin_midpointsGT1_s, mean_stateprobsGT1_s[, 2], "normal", bandwidth
 lines(ksmooth(bin_midpointsGT1_s, mean_stateprobsGT1_s[, 3], "normal", bandwidth = 1), col = colour_s[3], lwd = 3)
 legend("right", legend = c("state 1", "state 2", "state 3"),
        col = c(colour_s), lwd = 2, bty = "n")
+})
+## Runtime on Apple M4 with 16GB RAM
+# user   system   elapsed 
+# 179.513 156.304 188.564 

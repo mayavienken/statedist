@@ -12,6 +12,7 @@ source("functions/sim_study.r")
 colour_s = c("orange", "skyblue", "seagreen")
 
 # Parameters ----
+set.seed(22)
 N_s <- 3 
 n_s <- 500 # dimension of simulated dataset (length of time series) - CHANGED
 num_simulations_s <- 200 # number of simulated datasets 

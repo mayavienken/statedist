@@ -11,6 +11,7 @@ source("functions/sim_study.r")
 colour = c("orange", "skyblue", "seagreen")
 
 # Parameters ----
+set.seed(22)
 N <- 3 # number of states
 n <- 2000 # dimension of simulated dataset (length of time series)
 num_simulations <- 200 # number of simulated datasets 
@@ -104,7 +105,7 @@ DeltaseqGT1 = matrix(NA, length(zseqGT1), 3)
 for(t in 1:length(zseqGT1)) DeltaseqGT1[t,] = LaMa::stationary(GammaseqGT1[,,t]) 
 
 par(mfrow=c(1,1))
-plot(ksmooth(bin_midpointsGT1, mean_stateprobsGT1[, 1], "normal", bandwidth=1), col = colour[1], lwd = 3, ylab = "Pr(state i|z), i=1,2,3", 
+plot(ksmooth(bin_midpointsGT1, mean_stateprobsGT1[, 1], "normal", bandwidth=1), col = colour[1], lwd = 3, ylab = "Pr(state | z)", 
      xlab = "covariate value z", main = "", ylim=c(0,1), type="l", bty="n")
 lines(ksmooth(bin_midpointsGT1, mean_stateprobsGT1[,1], "normal", bandwidth =1), col=colour[1], lwd=3)
 lines(ksmooth(bin_midpointsGT1, mean_stateprobsGT1[, 2], "normal", bandwidth = 1), col = colour[2], lwd = 3)
@@ -116,6 +117,7 @@ lines(ksmooth(zseqGT1, DeltaseqGT1[, 3], "normal", bandwidth = 1), col = colour[
 
 ### AR -----
 
+system.time({
 num_covsim <- 200
 num_simulations <- 200
 
@@ -136,7 +138,7 @@ for (i in 1:num_simulations) {
 }
 
 plot(NULL, ylim = c(0, 1),
-     xlab = "covariate value z", ylab = "Pr(state i|z), i=1,2,3", main = "", bty = "n",
+     xlab = "covariate value z", ylab = "Pr(state | z)", main = "", bty = "n",
      xlim=c(-4, 4))
 
 for (i in 1:num_simulations) {
@@ -162,8 +164,13 @@ legend("right",
          delta, 
          rho
        ))
+})
+## Runtime on Apple M4 with 16GB RAM 
+# user   system   elapsed                                                                                                                                 
+# 788.648 668.265 546.659 
 
-#### AR and Hypothetical -----
+#### AR and hypothetical -----
+system.time({
 num_covsim <- 200
 num_simulations <- 200
 
@@ -197,7 +204,7 @@ for (i in 1:num_simulations) {
 par(mfrow=c(1,2))
 
 plot(NULL, ylim = c(0, 1),
-     xlab = "covariate value z", ylab = "Pr(state i | z), i=1,2,3",
+     xlab = "covariate value z", ylab = "Pr(state | z)",
      main = "AR resampling (Setting I)", bty = "n",
      xlim = c(-4, 4))
 
@@ -211,7 +218,7 @@ lines(ksmooth(bin_midpointsGT1, mean_stateprobsGT1[, 2], "normal", bandwidth = 1
 lines(ksmooth(bin_midpointsGT1, mean_stateprobsGT1[, 3], "normal", bandwidth = 1), col = colour[3], lwd = 3)
 
 plot(NULL, ylim = c(0, 1),
-     xlab = "covariate value z", ylab = "Pr(state i | z), i=1,2,3",
+     xlab = "covariate value z", ylab = "Pr(state | z)",
      main = "Hypothetical stationary distribution (Setting I)", bty = "n",
      xlim = c(-4, 4))
 
@@ -224,10 +231,14 @@ for (i in 1:num_simulations) {
 lines(ksmooth(bin_midpointsGT1, mean_stateprobsGT1[, 1], "normal", bandwidth = 1), col = colour[1], lwd = 3)
 lines(ksmooth(bin_midpointsGT1, mean_stateprobsGT1[, 2], "normal", bandwidth = 1), col = colour[2], lwd = 3)
 lines(ksmooth(bin_midpointsGT1, mean_stateprobsGT1[, 3], "normal", bandwidth = 1), col = colour[3], lwd = 3)
+})
+## Runtime on Apple M4 with 16GB RAM
+# user   system   elapsed                                                                                                                                 
+# 811.287 605.159 533.817 
 
-
-### Flexible Dirichlet Regression ----
-
+### Flexible Dirichlet regression ----
+system.time({
+par(mfrow=c(1,1))  
 num_simulations <- 200
 
 gam_results1 <- with_progress({
@@ -261,7 +272,7 @@ cut3_1 <- trim_to_range(ks3_1$x, ks3_1$y)
 
 #par(mfrow=c(1,3), mgp = c(1.8, 0.5, 0), mar=c(3, 3, 1,1), cex.lab=1.3, cex.main=1.3)
 plot(NULL, ylim = c(0, 1),
-     xlab = "covariate value z", ylab = "Pr(state i | z), i=1,2,3", main = "Setting (I)", bty = "n", 
+     xlab = "covariate value z", ylab = "Pr(state | z)", main = "Setting (I)", bty = "n", 
      xlim=c(-4, 4))
 
 for (i in 1:num_simulations) {
@@ -275,9 +286,14 @@ lines(cut2_1$x, cut2_1$y, col = colour[2], lwd = 3)
 lines(cut3_1$x, cut3_1$y, col = colour[3], lwd = 3)
 legend("topleft",col = c(colour, "transparent"),lwd = 3,bty = "n",
        lty = c(1,1,1),legend = expression(state~1, state~2, state~3))
+})
+## Runtime on Apple M4 with 16GB RAM
+# user   system   elapsed                                                                                                                                 
+# 607.560   4.484 621.198 
+
 
 # plot(NULL, ylim = c(0, 1),
-#      xlab = "covariate value z", ylab = "Pr(state i | z), i=1,2,3", main = "Setting (II)", bty = "n", 
+#      xlab = "covariate value z", ylab = "Pr(state | z)", main = "Setting (II)", bty = "n", 
 #      xlim=c(-4, 4))
 # 
 # for (i in 1:num_simulations) {
@@ -293,7 +309,7 @@ legend("topleft",col = c(colour, "transparent"),lwd = 3,bty = "n",
 # 
 # 
 # plot(NULL, ylim = c(0, 1),
-#      xlab = "covariate value z", ylab = "Pr(state i | z), i=1,2,3", main = "Setting (III)", bty = "n", 
+#      xlab = "covariate value z", ylab = "Pr(state | z)", main = "Setting (III)", bty = "n", 
 #      xlim=c(-8, 8))
 # 
 # for (i in 1:num_simulations) {
@@ -307,8 +323,9 @@ legend("topleft",col = c(colour, "transparent"),lwd = 3,bty = "n",
 # lines(cut3_3$x, cut3_3$y, col = colour[3], lwd = 3)
 
 
-### BB Approach ----
-num_covsim <- 500
+### BB approach ----
+system.time({
+num_covsim <- 200
 num_simulations <- 200
 
 results_1BB <- with_progress({
@@ -330,7 +347,7 @@ for (i in 1:num_simulations) {
 }
 
 plot(NULL, ylim = c(0, 1),
-     xlab = "covariate value z", ylab = "Pr(state i | z), i=1,2,3", main = "Setting (I): BB resampling", bty = "n",
+     xlab = "covariate value z", ylab = "Pr(state | z)", main = "Setting (I): BB resampling", bty = "n",
      xlim=c(min(zGT1)+1, max(zGT1)-1))
 
 for (i in 1:num_simulations) {
@@ -343,5 +360,8 @@ lines(ksmooth(bin_midpointsGT1, mean_stateprobsGT1[, 2], "normal", bandwidth = 1
 lines(ksmooth(bin_midpointsGT1, mean_stateprobsGT1[, 3], "normal", bandwidth = 1), col = colour[3], lwd = 3)
 legend("right", legend = c("state 1", "state 2", "state 3"),
        col = c(colour), lwd = 2, bty = "n")
+})
 
-
+## Runtime on Apple M4 with 16GB RAM
+# user   system   elapsed                                                             
+# 500.228 342.911 428.289 

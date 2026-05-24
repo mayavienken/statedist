@@ -11,6 +11,7 @@ source("functions/sim_study.r")
 colour = c("orange", "skyblue", "seagreen")
 
 # Parameters ----
+set.seed(22)
 N <- 3
 n <- 2000
 num_simulations <- 200 # number of simulated datasets 
@@ -114,7 +115,7 @@ for(t in 1:length(zseqGT3)) DeltaseqGT3[t,] = LaMa::stationary(GammaseqGT3[,,t])
 
 # hypothetical stationary distribution (dashed lines) vs. true state occupancy distribution (solid lines)
 par(mfrow=c(1,1))
-plot(ksmooth(bin_midpointsGT3, mean_stateprobsGT3[, 1], "normal", bandwidth = 1), col = colour[1], lwd = 3, ylab = "Pr(state i|z), i=1,2,3", 
+plot(ksmooth(bin_midpointsGT3, mean_stateprobsGT3[, 1], "normal", bandwidth = 1), col = colour[1], lwd = 3, ylab = "Pr(state | z)", 
      xlab = "covariate value z", main = "", ylim=c(0,1), type="l", bty="n", xlim=c(-10,10))
 lines(ksmooth(bin_midpointsGT3, mean_stateprobsGT3[, 2], "normal", bandwidth = 1), col = colour[2], lwd = 3)
 lines(ksmooth(bin_midpointsGT3, mean_stateprobsGT3[, 3], "normal", bandwidth = 1), col = colour[3], lwd = 3)
@@ -155,7 +156,7 @@ for (i in 1:num_simulations) {
 
 par(mfrow=c(1,2))
 plot(NULL, ylim = c(0, 1),
-     xlab = "covariate value z", ylab = "Pr(state i | z), i=1,2,3",
+     xlab = "covariate value z", ylab = "Pr(state | z)",
      main = "", bty = "n",
      xlim = c(-10, 10))
 
@@ -171,7 +172,7 @@ lines(ksmooth(bin_midpointsGT3, mean_stateprobsGT3[, 3], "normal", bandwidth = 1
 
 
 plot(NULL, ylim = c(0, 1),
-     xlab = "covariate value z", ylab = "Pr(state i | z), i=1,2,3",
+     xlab = "covariate value z", ylab = "Pr(state | z)",
      main = "", bty = "n",
      xlim = c(-10, 10))
 
@@ -218,7 +219,7 @@ for (i in 1:num_simulations) {
 
 
 plot(NULL, ylim = c(0, 1),
-     xlab = "covariate value z", ylab = "Pr(state i | z), i=1,2,3", main = "", bty = "n", 
+     xlab = "covariate value z", ylab = "Pr(state | z)", main = "", bty = "n", 
      xlim=c(-8, 8))
 
 for (i in 1:num_simulations) {
@@ -267,7 +268,7 @@ for (i in 1:num_simulations) {
 
 par(mfrow=c(1,2))
 plot(NULL, ylim = c(0, 1),
-     xlab = "covariate value z", ylab = "Pr(state i|z), i=1,2,3", bty = "n",
+     xlab = "covariate value z", ylab = "Pr(state | z)", bty = "n",
      xlim=c(min(zGT3)+1, max(zGT3)-1), main="AR resampling")
 
 for (i in 1:num_simulations) {
@@ -302,7 +303,7 @@ for (i in 1:num_simulations) {
 }
 
 plot(NULL, ylim = c(0, 1),
-     xlab = "covariate value z", ylab = "Pr(state i | z), i=1,2,3", main = "Setting (III): BB resampling", bty = "n",
+     xlab = "covariate value z", ylab = "Pr(state | z)", main = "Setting (III): BB resampling", bty = "n",
      xlim=c(min(zGT3)+1, max(zGT3)-1))
 
 for (i in 1:num_simulations) {
