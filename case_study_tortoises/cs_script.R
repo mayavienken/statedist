@@ -305,13 +305,13 @@ Gammaseq <- tpm_g(zseq, beta.hat)
 Deltaseq <- matrix(NA, length(zseq), N)
 for (t in 1:length(zseq)) Deltaseq[t,] <- LaMa::stationary(Gammaseq[,,t])
 
-#pdf("./case_study_tortoises/figures/hypothetical.pdf", width=6, height=4)
+# pdf("./case_study_tortoises/figures/cs_hypothetical.pdf", width=6, height=4)
 par(mfrow = c(1,1), mgp = c(1.8, 0.5, 0), mar=c(3, 3, 1,1), cex.lab=1.3) 
 plot(z, Delta[, 1],
      xlim = c(min(z), max(z)), ylim = c(0, 1),
      pch = 16, col = alpha(colour[1], 0),
      bty = "n",
-     ylab = "Pr(state i | temp), i=1,2,3",
+     ylab = "Pr(state | temp)",
      xlab = "temperature",
      main = "")
 for (state in 1:N) {
@@ -325,7 +325,7 @@ for (state in 1:N) {
 
 legend("topright",col = c( "orange",  "skyblue", "seagreen"), lty = c(3,3,3),   
        lwd = 3, bty = "n", legend = expression("", rho, ""), y.intersp = 0.3, cex = 1.3)
-#dev.off()
+# dev.off()
 
 # state occupancy probabilities at 30 degrees (hypothetical stationary distribution)
 which(round(zseq, 2)==30)
@@ -361,12 +361,12 @@ system.time({
   }
   mean_state_probs <- na.approx(mean_state_probs)
   
-  #pdf("./case_study_tortoises/figures/bb_approach.pdf", width=6, height=4)
+  # pdf("./case_study_tortoises/figures/cs_bb_approach.pdf", width=6, height=4)
   par(mfrow = c(1,1), mgp = c(1.8, 0.5, 0), mar=c(3, 3, 1,1), cex.lab=1.3) 
   plot(z, Delta[, 1],
        xlim = c(min(z),max(z)), ylim = c(0, 1),
        pch = 16, col = alpha(colour[1], 0),
-       bty = "n", ylab = "Pr(state i | temp), i=1,2,3",
+       bty = "n", ylab = "Pr(state | temp)",
        xlab = "temperature", main="BB resampling")
   for (state in 1:N) {
     points(jitter(z, factor = 0), Delta[, state], col = alpha(colour[state], 0.1), pch = 16)
@@ -381,7 +381,7 @@ system.time({
   #       pch = c(16, 16, 16, NA, NA), lty = c(NA, NA, NA, NA, 1),   
   #       lwd = 3, bty = "n", legend = expression(state~1, state~2, state~3, "", delta))
   
-  #dev.off()
+  # dev.off()
 })
 
 ## Runtime BB-approach case study (Apple M4, 16GB RAM)
@@ -404,10 +404,11 @@ Mean <- mod$predict(x_p)
 
 par(mfrow = c(1,1), mgp = c(1.8, 0.5, 0), mar=c(3, 3, 1,1), cex.lab=1.3) 
 
-#pdf("./case_study_tortoises/figures/dirichlet_regression.pdf", width=6, height=4)
+# pdf("./case_study_tortoises/figures/cs_dirichlet_reg.pdf", width=6, height=4)
+par(mfrow = c(1,1), mgp = c(1.8, 0.5, 0), mar=c(3, 3, 1,1), cex.lab=1.3) 
 plot(0,0,xlim=c(min(df.animal$temperature), max(df.animal$temperature)), ylim = c(0, 1),
      pch = 16, col = alpha(colour[1], 0),
-     bty = "n", ylab = "Pr(state i | temp), i=1,2,3",
+     bty = "n", ylab = "Pr(state | temp)",
      xlab = "temperature", main="Flexible Dirichlet regression")  
 for (state in 1:N) {
   points(jitter(z, factor = 0), Delta[, state], col = alpha(colour[state], 0.1), pch = 16)
@@ -417,7 +418,7 @@ for (state in 1:N) {
   lines(x_p, Mean[,state], col = "white", lwd = 7, lty = 1)
   lines(x_p, Mean[,state], col = darker_col, lwd = 3, lty = 1)
 }
-#dev.off()
+# dev.off()
 
 which(round(x_p, 2)==30)
 Mean[133,]
@@ -430,6 +431,7 @@ system.time(apply_dir_reg(y=Delta,x=z,N=3, covname="temp"))
 # 2.209   0.010   2.252 
 
 # CI BB approach ----
+system.file({
 nCI <- 1000
 num_covsim <- 50
 
@@ -475,7 +477,7 @@ for (i in 1:nCI) {
 par(mfrow = c(1,1), mgp = c(1.8, 0.5, 0), mar=c(3, 3, 1,1), cex.lab=1.3) 
 #pdf("./case_study_tortoises/figures/bb_approach_ci.pdf", width=6, height=4)
 plot(NULL, xlim = c(min(df.animal$temperature), max(df.animal$temperature)), ylim = c(0, 1), bty = "n",
-     xlab = "temperature", ylab = "Pr(state i | temp), i=1,2,3", main = "BB resampling")
+     xlab = "temperature", ylab = "Pr(state | temp)", main = "BB resampling")
 
 for (state in 1:3) {
   y <- all_probs_array_II[,,state]
@@ -487,9 +489,10 @@ for (state in 1:3) {
 }
 legend("topright", legend = paste("state", 1:3), col = colour, lwd = 3, bty = "n")
 #dev.off()
+})
 
 # CI Dirichlet regression ----
-
+system.time({
 nCI <- 1000
 N <- 3
 n <- nrow(df.animal)
@@ -531,7 +534,7 @@ pdf("./case_study_tortoises/figures/dirichlet_regression_ci.pdf", width=6, heigh
 par(mfrow = c(1,1), mgp = c(1.8, 0.5, 0), mar=c(3, 3, 1,1), cex.lab=1.3) 
 plot(zseq, Delta_median[, 1], type = "n",
      ylim = c(0, 1), bty="n", xlim=c(min(df.animal$temperature), max(df.animal$temperature)),
-     xlab = "temperature", ylab = "Pr(state i | temp), i=1,2,3", main="Flexible Dirichlet regression")  
+     xlab = "temperature", ylab = "Pr(state | temp)", main="Flexible Dirichlet regression")  
 
 for (state in 1:N) {
   col_state <- adjustcolor(colour[state], red.f = 0.9, green.f = 0.9, blue.f = 0.9, alpha.f = 1)
@@ -541,3 +544,4 @@ for (state in 1:N) {
   lines(x_p, Mean[,state], col = colour[state], lwd = 3, lty = 1)
 }
 #dev.off()
+})
