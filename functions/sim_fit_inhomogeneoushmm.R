@@ -44,36 +44,45 @@ simCovHMM <- function(n, mu, sig, beta, periodic = TRUE,
 }
 
 # fit HMM with covariate-dependent transitions via maximum likelihood
-fitCovHMM <- function(par, x, Z) {
+fitCovHMM <- function(par, dat) {
   
   # negative log-likelihood using forward algorithm
-  nll_cov <- function(par, x, Z) {
+  nll_cov <- function(par) {
+    getAll(par, dat) # make everything accessible without $
     
-    beta <- matrix(par[1:12], nrow = 6)
-    Gamma <- tpm_g(Z[-1, ], beta)
-    delta <- c(1, exp(par[13]), exp(par[14]))
+    beta <- matrix(beta, nrow = N*(N-1))
+    Gamma <- tpm_g(Z[-1, ], beta) # transition probability matrices
+    
+    delta <- c(1, exp(delta[1]), exp(delta[2]))
     delta <- delta / sum(delta)
     
-    mu <- par[15:17]        # state means
-    sig <- exp(par[18:20])  # state standard deviations
+    mu <- mu        # state-dependent means
+    REPORT(mu); ADREPORT(mu)
+    sigma <- exp(sigma)  # state-dependent standard deviations
+    REPORT(sigma); ADREPORT(sigma)
     
     # emission probabilities
-    allprobs <- matrix(1, length(x), 3)
-    for (j in 1:3) allprobs[, j] <- dnorm(x, mu[j], sig[j])
+    allprobs <- matrix(1, length(x), N) 
+    for (j in 1:3) allprobs[, j] <- dnorm(x, mu[j], sigma[j])
     
     -forward_g(delta, Gamma, allprobs)
   }
   
-  # optimise likelihood
-  mod <- nlm(nll_cov, par, x = x, Z = Z, hessian = TRUE)
+  # create automatically differentiable objective
+  obj = MakeADFun(nll_cov, par, silent = TRUE)
   
+  # optimise likelihood
+  opt <- nlminb(obj$par, obj$fn, obj$gr)
+  
+  # report results
+  mod = report(obj)
   # extract parameter estimates
-  beta_hat <- matrix(mod$estimate[1:12], nrow = 6)
-  Gamma_hat <- tpm_g(Z[-1, ], beta_hat)
-  delta_hat <- c(1, exp(mod$estimate[13]), exp(mod$estimate[14]))
+  beta_hat <- matrix(mod$beta, nrow = 6)
+  Gamma_hat <- tpm_g(dat$Z[-1, ], beta_hat)
+  delta_hat <- c(1, mod$delta)
   delta_hat <- delta_hat / sum(delta_hat)
-  mu_hat <- mod$estimate[15:17]
-  sig_hat <- exp(mod$estimate[18:20])
+  mu_hat <- mod$mu
+  sig_hat <- mod$sigma
   
   return(list(
     beta = beta_hat,
@@ -81,10 +90,6 @@ fitCovHMM <- function(par, x, Z) {
     #delta = delta_hat,
     mu = mu_hat,
     sig = sig_hat,
-    logLik = -mod$minimum,
-    convergence = mod$code,
-    hessian = mod$hessian
+    logLik = -mod$ll
   ))
 }
-
-

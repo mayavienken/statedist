@@ -34,14 +34,18 @@ beta <- matrix(c( 1, 2,   # 1-> 2
 # Simulation
 sim <-  simCovHMM(n=n, rho=rho, mu=mu, sig=sig, beta=beta, periodic=periodic)
 
-par = c(beta = c(
-  rep(-1, 6), rep(0,6)),
-  logitdelta = c(0,1), 
+par = list(
+  beta = c(rep(-1, 6), rep(0,6)),
+  delta = c(0,1), 
   mu = c(6, 15, 20), 
-  sig = c(log(3),log(3),log(3))
+  sigma = log(sig)
 )
 
-fit <- fitCovHMM(par=par, x=sim$x, Z=matrix(sim$z))
+dat = list(x = sim$x,
+           Z = matrix(sim$z), 
+           N=3)
+
+fit <- fitCovHMM(par=par, dat=dat)
 
 Gamma <- tpm_g(sim$z, beta)
 Delta <- matrix(NA, n, N)
@@ -124,7 +128,7 @@ num_simulations <- 200
 results <- with_progress({
   p <- progressor(steps = num_simulations)
   lapply(1:num_simulations, function(i) {
-    res <- simOneAr(n = n, rho=rho, mu = mu, sig = sig, beta = beta, periodic = periodic, par=par, num_covsim = num_covsim)
+    res <- simOneAr(n = n, rho=rho, mu = mu, sig = sig, beta = beta, periodic = periodic, par=par, dat=dat, num_covsim = num_covsim)
     p(message = sprintf("Done %d/%d", i, num_simulations))
     res
   })
@@ -179,8 +183,8 @@ results1 <- with_progress({
   lapply(1:num_simulations, function(i) {
     res <- simOneArHypothetical(
       n = n, rho = rho, mu = mu, sig = sig,
-      beta = beta, periodic = periodic, par = par,
-      num_covsim = num_covsim
+      beta = beta, periodic = periodic, par = par,dat=dat,
+      num_covsim = num_covsim, min = -4, max = 4
     )
     p(message = sprintf("Done %d/%d", i, num_simulations))
     res
@@ -234,7 +238,7 @@ lines(ksmooth(bin_midpointsGT1, mean_stateprobsGT1[, 3], "normal", bandwidth = 1
 })
 ## Runtime on Apple M4 with 16GB RAM
 # user   system   elapsed                                                                                                                                 
-# 811.287 605.159 533.817 
+# 701.890 480.891 296.442 
 
 ### Flexible Dirichlet regression ----
 system.time({
@@ -244,7 +248,8 @@ num_simulations <- 200
 gam_results1 <- with_progress({
   p <- progressor(steps = num_simulations)
   lapply(1:num_simulations, function(i) {
-    res <- oneDirGAM(n = n, rho=rho, mu = mu, sig = sig, beta = beta, periodic = periodic, par=par)
+    res <- oneDirGAM(n = n, rho=rho, mu = mu, sig = sig, beta = beta, periodic = periodic, 
+                     par=par, dat=dat, min_pred= -4, max_pred=4)
     p()
     res
   })
@@ -332,7 +337,7 @@ results_1BB <- with_progress({
   p <- progressor(steps = num_simulations)
   lapply(1:num_simulations, function(i) {
     res <- simOneBB(n = n, rho = rho, mu = mu, sig = sig,
-                    beta = beta, periodic = periodic, par = par,
+                    beta = beta, periodic = periodic, par = par, dat=dat,
                     num_covsim = num_covsim, blocklength=40)
     p(message = sprintf("Done %d/%d", i, num_simulations))
     res
@@ -364,4 +369,4 @@ legend("right", legend = c("state 1", "state 2", "state 3"),
 
 ## Runtime on Apple M4 with 16GB RAM
 # user   system   elapsed                                                             
-# 500.228 342.911 428.289 
+# 306.718 202.669 190.873 

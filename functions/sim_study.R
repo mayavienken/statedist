@@ -6,10 +6,15 @@ source("./functions/bb_approach.r")
 source("./functions/dir_reg.r")
 
 # for simulation study
-simOneAr <- function(n, rho, mu, sig, beta, periodic, par, num_covsim) {
+simOneAr <- function(n, rho, mu, sig, beta, periodic, par, dat, num_covsim) {
   
   sim <- simCovHMM(n = n, rho = rho, mu = mu, sig = sig, beta = beta, periodic = periodic)
-  fit <- fitCovHMM(par = par, x = sim$x, Z = matrix(sim$z))
+  dat_sim <- list(
+    x = sim$x,
+    Z = matrix(sim$z),
+    N = 3
+  )
+  fit <- fitCovHMM(par = par, dat = dat_sim)
   
   sim_z <- mclapply(1:num_covsim, function(i) simAr(n=n, sim$z), mc.cores = max(1, detectCores() - 2))
   sim_z <- do.call(cbind, sim_z)
@@ -42,13 +47,18 @@ simOneAr <- function(n, rho, mu, sig, beta, periodic, par, num_covsim) {
 fithypothetical <-  function(n, rho, mu, sig, beta, periodic, par, num_covsim) {
   
   sim <- simCovHMM(n = n, rho = rho, mu = mu, sig = sig, beta = beta, periodic = periodic)
-  fit <- fitCovHMM(par = par, x = sim$x, Z = matrix(sim$z))
+  dat_sim <- list(
+    x = sim$x,
+    Z = matrix(sim$z),
+    N = 3
+  )
+  fit <- fitCovHMM(par = par, dat=dat_sim)
   
   # define covariate grid
   zseq <- seq(min(sim$z), max(sim$z), length = 200)
   
   Gammaseq <- tpm_g(zseq, fit$beta)
-  Deltaseq <- matrix(NA, length(zseq), N)
+  Deltaseq <- matrix(NA, length(zseq), dat_sim$N)
   
   # compute stationary distribution at each covariate value
   for (t in 1:length(zseq)) Deltaseq[t,] <- LaMa::stationary(Gammaseq[,,t])
@@ -63,10 +73,15 @@ fithypothetical <-  function(n, rho, mu, sig, beta, periodic, par, num_covsim) {
 }
 
 
-simOneArHypothetical <- function(n, rho, mu, sig, beta, periodic, par, num_covsim) {
+simOneArHypothetical <- function(n, rho, mu, sig, beta, periodic, par, dat, num_covsim, min_z, max_z) {
   
   sim <- simCovHMM(n = n, rho = rho, mu = mu, sig = sig, beta = beta, periodic = periodic)
-  fit <- fitCovHMM(par = par, x = sim$x, Z = matrix(sim$z))
+  dat_sim <- list(
+    x = sim$x,
+    Z = matrix(sim$z),
+    N = 3
+  )
+  fit <- fitCovHMM(par = par, dat = dat_sim)
   
   sim_z <- mclapply(1:num_covsim, function(i) simAr(n=n, sim$z), mc.cores = max(1, detectCores() - 2))
   sim_z <- do.call(cbind, sim_z)
@@ -90,9 +105,9 @@ simOneArHypothetical <- function(n, rho, mu, sig, beta, periodic, par, num_covsi
     State3 = data.frame(x = bin_midpoints, y = mean_state_probs[, 3])
   )
   
-  zseq <- seq(min(sim$z), max(sim$z), length = 200)
+  zseq <- seq(min_z, max_z, length = 200)
   Gammaseq <- tpm_g(zseq, fit$beta)
-  Deltaseq <- matrix(NA, length(zseq), N)
+  Deltaseq <- matrix(NA, length(zseq), dat_sim$N)
   for (t in 1:length(zseq)) Deltaseq[t,] <- LaMa::stationary(Gammaseq[,,t])
   
   resulthypothetical <- list(
@@ -108,10 +123,15 @@ simOneArHypothetical <- function(n, rho, mu, sig, beta, periodic, par, num_covsi
 }
 
 
-simOneBB <- function(n, rho, mu, sig, beta, periodic, par, num_covsim, blocklength=24) {
+simOneBB <- function(n, rho, mu, sig, beta, periodic, par, dat, num_covsim, blocklength=24) {
   
   sim <- simCovHMM(n = n, rho = rho, mu = mu, sig = sig, beta = beta, periodic = periodic)
-  fit <- fitCovHMM(par = par, x = sim$x, Z = matrix(sim$z))
+  dat_sim <- list(
+    x = sim$x,
+    Z = matrix(sim$z),
+    N = 3
+  )
+  fit <- fitCovHMM(par = par, dat=dat_sim)
   
   sim_z <- mclapply(1:num_covsim, function(i) block_bootstrap(sim$z, blocklength, n), mc.cores = max(1, detectCores() - 2))
   sim_z <- do.call(cbind, sim_z)
@@ -140,11 +160,16 @@ simOneBB <- function(n, rho, mu, sig, beta, periodic, par, num_covsim, blockleng
 
 
 ## Dirichlet regression approach
-oneDirGAM <- function(n, rho, mu, sig, beta, periodic, par) {
+oneDirGAM <- function(n, rho, mu, sig, beta, periodic, par, dat, min_pred, max_pred) {
   
   # simulate data + fit HMM
   sim <- simCovHMM(n = n, rho=rho, mu = mu, sig = sig, beta = beta, periodic = periodic)
-  fit <- fitCovHMM(par = par, x = sim$x, Z = matrix(sim$z))
+  dat_sim <- list(
+    x = sim$x,
+    Z = matrix(sim$z),
+    N = 3
+  )
+  fit <- fitCovHMM(par = par, dat=dat_sim)
   
   # compute state probabilities for the observed covariate series
   z <- sim$z
@@ -162,7 +187,7 @@ oneDirGAM <- function(n, rho, mu, sig, beta, periodic, par) {
     mod <- dir_reg(Y, x, k = 8, bs="tp", lambda0=100)
   )
   
-  x_p <- seq(min(x), max(x), length = 200)
+  x_p <- seq(min_pred, max_pred, length = 200)
   Mean <- mod$predict(x_p)
   
   list(

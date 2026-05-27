@@ -46,7 +46,12 @@ applyAr <- function(sim, par, num_covsim) {
   z <- sim$z
   x <- sim$x
   n <- length(z)
-  fit <- fitCovHMM(par = par, x = x, Z = matrix(z))
+  dat_sim <- list(
+    x = sim$x,
+    Z = matrix(sim$z),
+    N = 3
+  )
+  fit <- fitCovHMM(par = par, dat=dat_sim)
   
   sim_z <- mclapply(1:num_covsim, function(i) simAr(n=n, z=z), mc.cores = max(1, detectCores() - 2))
   sim_z <- do.call(cbind, sim_z)

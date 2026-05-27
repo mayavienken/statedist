@@ -31,17 +31,20 @@ beta <- matrix(c( 1, 2,   # 1-> 2
                   1, 1), # 3-> 2
                nrow = 6, byrow = TRUE)
 
-par = c(beta = c(rep(-1, 6), rep(0,6)),
-        logitdelta = c(0,1), 
-        mu = mu, 
-        sig = sig)
+par = list(
+  beta = c(rep(-1, 6), rep(0,6)),
+  delta = c(0,1), 
+  mu = mu, 
+  sigma = log(sig)
+)
 
 sim <-  simCovHMM(n=n, rho=rho, mu=mu, sig=sig, beta=beta, periodic=periodic)
-par = c(beta = c(rep(-1, 6), rep(0,6)),
-        logitdelta = c(0,1), 
-        mu = c(6, 15, 20), 
-        sig = c(log(3),log(3),log(3)))
-fit <- fitCovHMM(par=par, x=sim$x, Z=matrix(sim$z))
+
+dat = list(x = sim$x,
+           Z = matrix(sim$z), 
+           N=3)
+
+fit <- fitCovHMM(par=par, dat=dat)
 
 
 Gamma <- tpm_g(sim$z, beta)
@@ -136,7 +139,8 @@ num_simulations <- 200
 results <- with_progress({
   p <- progressor(steps = num_simulations)
   lapply(1:num_simulations, function(i) {
-    res <- simOneAr(n = n, rho=rho, mu = mu, sig = sig, beta = beta, periodic = periodic, par=par, num_covsim = num_covsim)
+    res <- simOneAr(n = n, rho=rho, mu = mu, sig = sig, beta = beta, 
+                    periodic = periodic, par=par, num_covsim = num_covsim, dat=dat)
     p(message = sprintf("Done %d/%d", i, num_simulations))
     res
   })
@@ -187,8 +191,8 @@ results2 <- with_progress({
   lapply(1:num_simulations, function(i) {
     res <- simOneArHypothetical(
       n = n, rho = rho, mu = mu, sig = sig,
-      beta = beta, periodic = periodic, par = par,
-      num_covsim = num_covsim
+      beta = beta, periodic = periodic, par = par, dat=dat,
+      num_covsim = num_covsim, min = -4.05, max = 4.05
     )
     p(message = sprintf("Done %d/%d", i, num_simulations))
     res
@@ -246,7 +250,8 @@ lines(ksmooth(bin_midpointsGT2, mean_stateprobsGT2[, 3], "normal", bandwidth = 1
 gam_results2 <- with_progress({
   p <- progressor(steps = num_simulations)
   lapply(1:num_simulations, function(i) {
-    res <- oneDirGAM(n = n, rho=rho, mu = mu, sig = sig, beta = beta, periodic = periodic, par=par)
+    res <- oneDirGAM(n = n, rho = rho, mu = mu, sig = sig, beta = beta, periodic = periodic, 
+                     par = par, dat = dat, min_pred = -4.05, max_pred = 4.05)
     p()
     res
   })
@@ -259,17 +264,17 @@ for (i in 1:num_simulations) {
   gamcurve2$State3[[i]] <- gam_results2[[i]]$State3
 }
 
-trim_to_range <- function(x, y, xmin=min(zGT2), xmax=max(zGT2)) {
+trim_to_range <- function(x, y, xmin = -4.1, xmax = 4.1) {
   keep <- x >= xmin & x <= xmax
   list(x = x[keep], y = y[keep])
 }
 
-ks1 <- ksmooth(bin_midpointsGT2, mean_stateprobsGT2[, 1], "normal", bandwidth = 1)
-cut1 <- trim_to_range(ks1$x, ks1$y)
-ks2 <- ksmooth(bin_midpointsGT2, mean_stateprobsGT2[, 2], "normal", bandwidth = 1)
-cut2 <- trim_to_range(ks2$x, ks2$y)
-ks3 <- ksmooth(bin_midpointsGT2, mean_stateprobsGT2[, 3], "normal", bandwidth = 1)
-cut3 <- trim_to_range(ks3$x, ks3$y)
+ks1_2 <- ksmooth(bin_midpointsGT2, mean_stateprobsGT2[, 1], "normal", bandwidth = 1)
+cut1_2 <- trim_to_range(ks1_2$x, ks1_2$y)
+ks2_2 <- ksmooth(bin_midpointsGT2, mean_stateprobsGT2[, 2], "normal", bandwidth = 1)
+cut2_2 <- trim_to_range(ks2_2$x, ks2_2$y)
+ks3_2 <- ksmooth(bin_midpointsGT2, mean_stateprobsGT2[, 3], "normal", bandwidth = 1)
+cut3_2 <- trim_to_range(ks3_2$x, ks3_2$y)
 
 par(mfrow=c(1,1), mar=c(4,4,1,1))
 plot(NULL, ylim = c(0, 1),
@@ -282,9 +287,9 @@ for (i in 1:num_simulations) {
   lines(gamcurve2$State3[[i]]$x, gamcurve2$State3[[i]]$y, col = alpha(colour[3], 0.1), lwd = 1)
 }
 
-lines(cut1$x, cut1$y, col = colour[1], lwd = 3)
-lines(cut2$x, cut2$y, col = colour[2], lwd = 3)
-lines(cut3$x, cut3$y, col = colour[3], lwd = 3)
+lines(cut1_2$x, cut1_2$y, col = colour[1], lwd = 3)
+lines(cut2_2$x, cut2_2$y, col = colour[2], lwd = 3)
+lines(cut3_2$x, cut3_2$y, col = colour[3], lwd = 3)
 
 
 
@@ -296,7 +301,7 @@ results_2BB <- with_progress({
   p <- progressor(steps = num_simulations)
   lapply(1:num_simulations, function(i) {
     res <- simOneBB(n = n, rho = rho, mu = mu, sig = sig,
-                    beta = beta, periodic = periodic, par = par,
+                    beta = beta, periodic = periodic, par = par, dat=dat,
                     num_covsim = num_covsim, blocklength=20)
     p(message = sprintf("Done %d/%d", i, num_simulations))
     res

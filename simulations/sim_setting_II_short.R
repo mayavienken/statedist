@@ -3,6 +3,7 @@
 
 # Functions and libraries ----
 
+set.seed(22)
 source("functions/sim_fit_inhomogeneousHMM.r")
 source("functions/ar_approach.r")
 source("functions/bb_approach.r")
@@ -32,18 +33,22 @@ beta_s <- matrix(c( 1, 2,   # 1-> 2
                     1, 1), # 3-> 2
                  nrow = 6, byrow = TRUE)
 
-par_s = c(beta = c(rep(-1, 6), rep(0,6)),
-          logitdelta = c(0,1), 
-          mu = mu_s, 
-          sig = sig_s)
+par_s = list(
+  beta = c(rep(-1, 6), rep(0,6)),
+  delta = c(0,1), 
+  mu = mu_s, 
+  sigma = log(sig_s)
+)
 
 sim_s <-  simCovHMM(n=n_s, rho=rho_s, mu=mu_s, sig=sig_s, beta=beta_s, periodic=periodic_s)
-par_s = c(beta = c(rep(-1, 6), rep(0,6)),
-          logitdelta = c(0,1), 
-          mu = c(6, 15, 20), 
-          sig = c(log(3),log(3),log(3)))
-fit_s <- fitCovHMM(par=par_s, x=sim_s$x, Z=matrix(sim_s$z))
 
+dat_s = list(
+  x = sim_s$x,
+  Z = matrix(sim_s$z), 
+  N=3
+)
+
+fit_s <- fitCovHMM(par=par_s, dat=dat_s)
 
 Gamma_s <- tpm_g(sim_s$z, beta_s)
 Delta_s <- matrix(NA, n_s, N_s)
@@ -129,7 +134,7 @@ legend("right",col = c(colour_s, "transparent", "black", "black"),
 
 ### AR with error handling -----
 
-num_covsim_s <- 200
+num_covsim_s <- 800
 num_simulations_s <- 200
 
 results_s <- with_progress({
@@ -140,7 +145,7 @@ results_s <- with_progress({
   for(i in 1:num_simulations_s) {
     res <- tryCatch({
       simOneAr(n = n_s, rho=rho_s, mu = mu_s, sig = sig_s, beta = beta_s, 
-               periodic = periodic_s, par=par_s, num_covsim = num_covsim_s)
+               periodic = periodic_s, par=par_s, dat = dat_s, num_covsim = num_covsim_s)
     }, error = function(e) {
       message(sprintf("Simulation %d failed: %s", i, e$message))
       NULL
@@ -179,10 +184,6 @@ for (i in 1:length(results_s)) {
 lines(ksmooth(bin_midpointsGT2_s, mean_stateprobsGT2_s[, 1], "normal", bandwidth = 1), col = colour_s[1], lwd = 3)
 lines(ksmooth(bin_midpointsGT2_s, mean_stateprobsGT2_s[, 2], "normal", bandwidth = 1), col = colour_s[2], lwd = 3)
 lines(ksmooth(bin_midpointsGT2_s, mean_stateprobsGT2_s[, 3], "normal", bandwidth = 1), col = colour_s[3], lwd = 3)
-lines(ksmooth(zseqGT2_s, DeltaseqGT2_s[, 1], "normal", bandwidth = 1), col = colour_s[1], lwd = 3, lty=2)
-lines(ksmooth(zseqGT2_s, DeltaseqGT2_s[, 2], "normal", bandwidth = 1), col = colour_s[2], lwd = 3, lty=2)
-lines(ksmooth(zseqGT2_s, DeltaseqGT2_s[, 3], "normal", bandwidth = 1), col = colour_s[3], lwd = 3, lty=2)
-
 
 legend("right",
        col = c(colour_s, "transparent", "black", "black"),
@@ -209,8 +210,8 @@ results2_s <- with_progress({
     res <- tryCatch({
       simOneArHypothetical(
         n = n_s, rho = rho_s, mu = mu_s, sig = sig_s,
-        beta = beta_s, periodic = periodic_s, par = par_s,
-        num_covsim = num_covsim_s
+        beta = beta_s, periodic = periodic_s, par = par_s, dat = dat_s,
+        num_covsim = num_covsim_s, min_z = -4.05, max_z = 4.05
       )
     }, error = function(e) {
       message(sprintf("Simulation %d failed: %s", i, e$message))
@@ -287,7 +288,7 @@ gam_results2_s <- with_progress({
   for(i in 1:num_simulations_s) {
     res <- tryCatch({
       oneDirGAM(n = n_s, rho=rho_s, mu = mu_s, sig = sig_s, beta = beta_s, 
-                periodic = periodic_s, par=par_s)
+                periodic = periodic_s, par=par_s, dat = dat_s, min_pred = -4.05, max_pred = 4.05)
     }, error = function(e) {
       message(sprintf("Simulation %d failed: %s", i, e$message))
       NULL
@@ -314,7 +315,7 @@ for (i in 1:length(gam_results2_s)) {
   gamcurve2_s$State3[[i]] <- gam_results2_s[[i]]$State3
 }
 
-trim_to_range_s <- function(x, y, xmin=min(zGT2_s), xmax=max(zGT2_s)) {
+trim_to_range_s <- function(x, y, xmin=-4.1, xmax=4.1) {
   keep <- x >= xmin & x <= xmax
   list(x = x[keep], y = y[keep])
 }
@@ -344,7 +345,7 @@ lines(cut3_s$x, cut3_s$y, col = colour_s[3], lwd = 3)
 
 
 ### BB Approach with error handling ----
-num_covsim_s <- 2000
+num_covsim_s <- 400
 num_simulations_s <- 200
 
 results_2BB_s <- with_progress({
@@ -355,7 +356,7 @@ results_2BB_s <- with_progress({
   for(i in 1:num_simulations_s) {
     res <- tryCatch({
       simOneBB(n = n_s, rho = rho_s, mu = mu_s, sig = sig_s,
-               beta = beta_s, periodic = periodic_s, par = par_s,
+               beta = beta_s, periodic = periodic_s, par = par_s, dat = dat_s,
                num_covsim = num_covsim_s, blocklength=20)
     }, error = function(e) {
       message(sprintf("Simulation %d failed: %s", i, e$message))

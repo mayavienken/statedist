@@ -2,12 +2,11 @@
 ## Alternative n version with "_s" suffix (n=500)
 
 # Functions and libraries ----
-
+set.seed(22)
 source("functions/sim_fit_inhomogeneousHMM.r")
 source("functions/ar_approach.r")
 source("functions/bb_approach.r")
 source("functions/dir_reg.r")
-
 source("functions/sim_study.r")
 
 colour_s = c("orange", "skyblue", "seagreen")
@@ -32,17 +31,23 @@ beta_s <- matrix(c( 1, 2,   # 1-> 2
                     1, 1), # 3-> 2
                  nrow = 6, byrow = TRUE)
 
+par_s = list(
+  beta = c(rep(-1, 6), rep(0,6)),
+  delta = c(0,1), 
+  mu = c(6, 15, 20), 
+  sigma = log(sig_s)
+)
+
 # Simulation
 sim_s <-  simCovHMM(n=n_s, rho=rho_s, mu=mu_s, sig=sig_s, beta=beta_s, periodic=periodic_s)
 
-par_s = c(
-  beta = c(rep(-1, 6), rep(0,6)),
-  logitdelta = c(0,1), 
-  mu = c(6, 15, 20), 
-  sig = log(sig_s))
+dat_s = list(
+  x = sim_s$x,
+  Z = matrix(sim_s$z), 
+  N=3
+)
 
-fit_s <- fitCovHMM(par=par_s, x=sim_s$x, Z=matrix(sim_s$z))
-
+fit_s <- fitCovHMM(par=par_s, dat= dat_s)
 Gamma_s <- tpm_g(sim_s$z, beta_s)
 Delta_s <- matrix(NA, n_s, N_s)
 Delta_s[1,] <- rep(1/N_s, N_s)
@@ -105,7 +110,7 @@ DeltaseqGT1_s = matrix(NA, length(zseqGT1_s), 3)
 for(t in 1:length(zseqGT1_s)) DeltaseqGT1_s[t,] = LaMa::stationary(GammaseqGT1_s[,,t]) 
 
 par(mfrow=c(1,1))
-plot(ksmooth(bin_midpointsGT1_s, mean_stateprobsGT1_s[, 1], "normal", bandwidth=1), col = colour_s[1], lwd = 3, ylab = "Pr(state i|z), i=1,2,3", 
+plot(ksmooth(bin_midpointsGT1_s, mean_stateprobsGT1_s[, 1], "normal", bandwidth=1), col = colour_s[1], lwd = 3, ylab = "Pr(state | z)", 
      xlab = "covariate value z", main = "", ylim=c(0,1), type="l", bty="n")
 lines(ksmooth(bin_midpointsGT1_s, mean_stateprobsGT1_s[,1], "normal", bandwidth =1), col=colour_s[1], lwd=3)
 lines(ksmooth(bin_midpointsGT1_s, mean_stateprobsGT1_s[, 2], "normal", bandwidth = 1), col = colour_s[2], lwd = 3)
@@ -130,7 +135,7 @@ results_s <- with_progress({
   for(i in 1:num_simulations_s) {
     res <- tryCatch({
       simOneAr(n = n_s, rho=rho_s, mu = mu_s, sig = sig_s, beta = beta_s, 
-               periodic = periodic_s, par=par_s, num_covsim = num_covsim_s)
+               periodic = periodic_s, par=par_s, dat=dat_s, num_covsim = num_covsim_s)
     }, error = function(e) {
       message(sprintf("Simulation %d failed: %s", i, e$message))
       NULL
@@ -157,7 +162,7 @@ for (i in 1:length(results_s)) {
 }
 
 plot(NULL, ylim = c(0, 1),
-     xlab = "covariate value z", ylab = "Pr(state i|z), i=1,2,3", main = "", bty = "n",
+     xlab = "covariate value z", ylab = "Pr(state | z)", main = "", bty = "n",
      xlim=c(-4, 4))
 
 for (i in 1:length(results_s)) {
@@ -168,9 +173,6 @@ for (i in 1:length(results_s)) {
 lines(ksmooth(bin_midpointsGT1_s, mean_stateprobsGT1_s[, 1], "normal", bandwidth = 1), col = colour_s[1], lwd = 3)
 lines(ksmooth(bin_midpointsGT1_s, mean_stateprobsGT1_s[, 2], "normal", bandwidth = 1), col = colour_s[2], lwd = 3)
 lines(ksmooth(bin_midpointsGT1_s, mean_stateprobsGT1_s[, 3], "normal", bandwidth = 1), col = colour_s[3], lwd = 3)
-lines(ksmooth(zseqGT1_s, DeltaseqGT1_s[, 1], "normal", bandwidth = 1), col = colour_s[1], lwd = 3, lty=2)
-lines(ksmooth(zseqGT1_s, DeltaseqGT1_s[, 2], "normal", bandwidth = 1), col = colour_s[2], lwd = 3, lty=2)
-lines(ksmooth(zseqGT1_s, DeltaseqGT1_s[, 3], "normal", bandwidth = 1), col = colour_s[3], lwd = 3, lty=2)
 
 legend("right",
        col = c(colour_s, "transparent", "black", "black"),
@@ -186,7 +188,7 @@ legend("right",
 })
 ## Runtime on Apple M4 with 16GB RAM
 # user   system   elapsed 
-# 276.538 278.940 408.712 
+# 370.358 246.981 146.307 
 
 #### AR and hypothetical -----
 
@@ -204,8 +206,8 @@ results1_s <- with_progress({
     res <- tryCatch({
       simOneArHypothetical(
         n = n_s, rho = rho_s, mu = mu_s, sig = sig_s,
-        beta = beta_s, periodic = periodic_s, par = par_s,
-        num_covsim = num_covsim_s
+        beta = beta_s, periodic = periodic_s, par = par_s, dat=dat_s,
+        num_covsim = num_covsim_s, min_z = -4, max_z = 4
       )
     }, error = function(e) {
       message(sprintf("Simulation %d failed: %s", i, e$message))
@@ -244,7 +246,7 @@ for (i in 1: length(results1_s)) {
 par(mfrow=c(1,2))
 
 plot(NULL, ylim = c(0, 1),
-     xlab = "covariate value z", ylab = "Pr(state i | z), i=1,2,3",
+     xlab = "covariate value z", ylab = "Pr(state | z)",
      main = "AR resampling (Setting I)", bty = "n",
      xlim = c(-4, 4))
 
@@ -258,7 +260,7 @@ lines(ksmooth(bin_midpointsGT1_s, mean_stateprobsGT1_s[, 2], "normal", bandwidth
 lines(ksmooth(bin_midpointsGT1_s, mean_stateprobsGT1_s[, 3], "normal", bandwidth = 1), col = colour_s[3], lwd = 3)
 
 plot(NULL, ylim = c(0, 1),
-     xlab = "covariate value z", ylab = "Pr(state i | z), i=1,2,3",
+     xlab = "covariate value z", ylab = "Pr(state | z)",
      main = "Hypothetical stationary distribution (Setting I)", bty = "n",
      xlim = c(-4, 4))
 
@@ -275,7 +277,7 @@ lines(ksmooth(bin_midpointsGT1_s, mean_stateprobsGT1_s[, 3], "normal", bandwidth
 
 ## Runtime: Apple M4 with 16GB RAM
 # user   system   elapsed 
-# 257.034 238.810 217.475 
+# 381.576 252.350 147.605 
 
 
 ### Flexible Dirichlet regression ----
@@ -292,7 +294,8 @@ gam_results1_s <- with_progress({
   for(i in 1:num_simulations_s) {
     res <- tryCatch({
       oneDirGAM(n = n_s, rho=rho_s, mu = mu_s, sig = sig_s, 
-                beta = beta_s, periodic = periodic_s, par=par_s)
+                beta = beta_s, periodic = periodic_s, par=par_s, 
+                dat = dat_s, min_pred = -4, max_pred = 4)
     }, error = function(e) {
       message(sprintf("Simulation %d failed: %s", i, e$message))
       NULL
@@ -333,7 +336,7 @@ cut3_1_s <- trim_to_range_s(ks3_1_s$x, ks3_1_s$y)
 
 
 plot(NULL, ylim = c(0, 1),
-     xlab = "covariate value z", ylab = "Pr(state i | z), i=1,2,3", main = "Setting (I)", bty = "n", 
+     xlab = "covariate value z", ylab = "Pr(state | z)", main = "Setting (I)", bty = "n", 
      xlim=c(-4, 4))
 
 for (i in 1:length(gam_results1_s)) {
@@ -350,11 +353,11 @@ legend("topleft",col = c(colour_s, "transparent"),lwd = 3,bty = "n",
 })
 ## Runtime: Apple M4 with 16GB RAM
 # user   system   elapsed 
-# 298.909   2.035 303.128 
+# 161.771   1.347 165.614 
 
 ### BB approach ----
 system.time({
-num_covsim_s <- 200
+num_covsim_s <- 400
 num_simulations_s <- 200
 
 # BB approach with error handling
@@ -366,7 +369,7 @@ results_1BB_s <- with_progress({
   for(i in 1:num_simulations_s) {
     res <- tryCatch({
       simOneBB(n = n_s, rho = rho_s, mu = mu_s, sig = sig_s,
-               beta = beta_s, periodic = periodic_s, par = par_s,
+               beta = beta_s, periodic = periodic_s, par = par_s, dat=dat_s,
                num_covsim = num_covsim_s, blocklength=40)
     }, error = function(e) {
       message(sprintf("Simulation %d failed: %s", i, e$message))
@@ -395,7 +398,7 @@ for (i in 1:length(results_1BB_s)) {
 }
 
 plot(NULL, ylim = c(0, 1),
-     xlab = "covariate value z", ylab = "Pr(state i | z), i=1,2,3", main = "Setting (I): BB resampling", bty = "n",
+     xlab = "covariate value z", ylab = "Pr(state | z)", main = "Setting (I): BB resampling", bty = "n",
      xlim=c(min(zGT1_s)+1, max(zGT1_s)-1))
 
 for (i in 1:length(results_1BB_s)) {

@@ -2,7 +2,7 @@
 ## Alternative n version with "_s" suffix and error handling
 
 # Functions and libraries ----
-
+set.seed(22)
 source("functions/sim_fit_inhomogeneousHMM.r")
 source("functions/ar_approach.r")
 source("functions/bb_approach.r")
@@ -31,13 +31,23 @@ beta_s = matrix(c( -1, -1.5,   # 1-> 2
                    -1, -1), # 3-> 2
                 nrow = 6, byrow = TRUE)
 
-par_s = c(beta = c(rep(-1, 6), rep(0,6)),
-          logitdelta = c(0,0), 
-          mu = mu_s, 
-          sig = log(sig_s)) 
+par_s = list(
+  beta = c(rep(-1, 6), rep(0,6)),
+  delta = c(0,1), 
+  mu = c(6, 15, 20), 
+  sigma = log(sig_s)
+)
 
-sim_s <- simCovHMM(n = n_s, mu = mu_s, sig = sig_s, beta = beta_s, periodic = TRUE)
+# Simulation
+sim_s <-  simCovHMM(n=n_s, rho=rho_s, mu=mu_s, sig=sig_s, beta=beta_s, periodic=periodic_s)
 
+dat_s = list(
+  x = sim_s$x,
+  Z = matrix(sim_s$z), 
+  N=3
+)
+
+fit_s <- fitCovHMM(par=par_s, dat= dat_s)
 # Time series of simulated covariate and states
 par(mfrow=c(1,1))
 plot(ts(sim_s$z[1:300]), ylab = "Covariate z", xlab = "Time", main = "Simulated periodic covariate (first 300 time steps)", bty="n")
@@ -137,8 +147,8 @@ results3_s <- with_progress({
     res <- tryCatch({
       simOneArHypothetical(
         n = n_s, rho = rho_s, mu = mu_s, sig = sig_s,
-        beta = beta_s, periodic = periodic_s, par = par_s,
-        num_covsim = num_covsim_s
+        beta = beta_s, periodic = periodic_s, par = par_s,dat = dat_s, 
+        num_covsim = num_covsim_s, min_z = -8, max_z = 8
       )
     }, error = function(e) {
       message(sprintf("Simulation %d failed: %s", i, e$message))
@@ -174,7 +184,7 @@ for (i in 1:length(results3_s)) {
 
 par(mfrow=c(1,2))
 plot(NULL, ylim = c(0, 1),
-     xlab = "covariate value z", ylab = "Pr(state i | z), i=1,2,3",
+     xlab = "covariate value z", ylab = "Pr(state | z)",
      main = "", bty = "n",
      xlim = c(-10, 10))
 
@@ -190,7 +200,7 @@ lines(ksmooth(bin_midpointsGT3_s, mean_stateprobsGT3_s[, 3], "normal", bandwidth
 
 
 plot(NULL, ylim = c(0, 1),
-     xlab = "covariate value z", ylab = "Pr(state i | z), i=1,2,3",
+     xlab = "covariate value z", ylab = "Pr(state | z)",
      main = "", bty = "n",
      xlim = c(-10, 10))
 
@@ -215,7 +225,7 @@ gam_results3_s <- with_progress({
   for(i in 1:num_simulations_s) {
     res <- tryCatch({
       oneDirGAM(n = n_s, rho=rho_s, mu = mu_s, sig = sig_s, beta = beta_s, 
-                periodic = periodic_s, par=par_s)
+                periodic = periodic_s, par=par_s, dat = dat_s)
     }, error = function(e) {
       message(sprintf("Simulation %d failed: %s", i, e$message))
       NULL
@@ -256,7 +266,7 @@ for (i in 1:length(gam_results3_s)) {
 
 
 plot(NULL, ylim = c(0, 1),
-     xlab = "covariate value z", ylab = "Pr(state i | z), i=1,2,3", main = "", bty = "n", 
+     xlab = "covariate value z", ylab = "Pr(state | z)", main = "", bty = "n", 
      xlim=c(-8, 8))
 
 for (i in 1:length(gam_results3_s)) {
@@ -293,7 +303,7 @@ results3AR_s <- with_progress({
   for(i in 1:num_simulations_s) {
     res <- tryCatch({
       simOneAr(n = n_s, rho=rho_s, mu = mu_s, sig = sig_s, beta = beta_s, 
-               periodic = periodic_s, par=par_s, num_covsim = num_covsim_s)
+               periodic = periodic_s, par=par_s, dat= dat_s, num_covsim = num_covsim_s)
     }, error = function(e) {
       message(sprintf("Simulation %d failed: %s", i, e$message))
       NULL
@@ -323,7 +333,7 @@ for (i in 1:length(results3AR_s)) {
 
 par(mfrow=c(1,2))
 plot(NULL, ylim = c(0, 1),
-     xlab = "covariate value z", ylab = "Pr(state i|z), i=1,2,3", bty = "n",
+     xlab = "covariate value z", ylab = "Pr(state | z)", bty = "n",
      xlim=c(min(zGT3_s)+1, max(zGT3_s)-1), main="AR resampling")
 
 for (i in 1:length(results3AR_s)) {
@@ -347,7 +357,7 @@ results_3BB_s <- with_progress({
   for(i in 1:num_simulations_s) {
     res <- tryCatch({
       simOneBB(n = n_s, rho = rho_s, mu = mu_s, sig = sig_s,
-               beta = beta_s, periodic = periodic_s, par = par_s,
+               beta = beta_s, periodic = periodic_s, par = par_s, dat= dat_s,
                num_covsim = num_covsim_s, blocklength = 24)
     }, error = function(e) {
       message(sprintf("Simulation %d failed: %s", i, e$message))
@@ -376,7 +386,7 @@ for (i in 1:length(results_3BB_s)) {
 }
 
 plot(NULL, ylim = c(0, 1),
-     xlab = "covariate value z", ylab = "Pr(state i | z), i=1,2,3", main = "Setting (III): BB resampling", bty = "n",
+     xlab = "covariate value z", ylab = "Pr(state | z)", main = "Setting (III): BB resampling", bty = "n",
      xlim=c(min(zGT3_s)+1, max(zGT3_s)-1))
 
 for (i in 1:length(results_3BB_s)) {
