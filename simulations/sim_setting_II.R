@@ -116,7 +116,6 @@ DeltaseqGT2 = matrix(NA, length(zseqGT2), 3)
 for(t in 1:length(zseqGT2)) DeltaseqGT2[t,] = LaMa::stationary(GammaseqGT2[,,t]) 
 
 # hypothetical stationary distribution (dashed lines) vs. true state occupancy distribution (solid lines)
-#pdf("./simulations/figures/true_state_occup_dist_I.pdf", width=7, height=4)
 par(mfrow=c(1,1), mar=c(4,4,1,1))
 plot(ksmooth(bin_midpointsGT2, mean_stateprobsGT2[, 1], "normal", bandwidth=1), col = colour[1], lwd = 3, ylab = "Pr(state | z)", 
      xlab = "covariate value z", main = "", ylim=c(0,1), type="l", bty="n", xlim=c(-5,5.5))
@@ -128,8 +127,6 @@ lines(ksmooth(zseqGT2, DeltaseqGT2[, 3], "normal", bandwidth = 1), col = colour[
 legend("right",col = c(colour, "transparent", "black", "black"),
        lwd = 3,bty = "n",lty = c(1,1,1, NA, 1, 3),legend = expression(
          state~1, state~2, state~3, "", delta, rho))
-#dev.off()
-
 
 ### AR -----
 

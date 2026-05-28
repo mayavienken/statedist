@@ -44,7 +44,7 @@ simOneAr <- function(n, rho, mu, sig, beta, periodic, par, dat, num_covsim) {
 
 # compute stationary state probabilities over covariate grid 
 # (hypothetical stationary distribution (Patterson et al., 2009))
-fithypothetical <-  function(n, rho, mu, sig, beta, periodic, par, num_covsim) {
+fithypothetical <-  function(n, rho, mu, sig, beta, periodic, par, dat, num_covsim, min_z, max_z) {
   
   sim <- simCovHMM(n = n, rho = rho, mu = mu, sig = sig, beta = beta, periodic = periodic)
   dat_sim <- list(
@@ -55,7 +55,7 @@ fithypothetical <-  function(n, rho, mu, sig, beta, periodic, par, num_covsim) {
   fit <- fitCovHMM(par = par, dat=dat_sim)
   
   # define covariate grid
-  zseq <- seq(min(sim$z), max(sim$z), length = 200)
+  zseq <- seq(min_z, max_z, length = 200)
   
   Gammaseq <- tpm_g(zseq, fit$beta)
   Deltaseq <- matrix(NA, length(zseq), dat_sim$N)

@@ -225,7 +225,7 @@ gam_results3_s <- with_progress({
   for(i in 1:num_simulations_s) {
     res <- tryCatch({
       oneDirGAM(n = n_s, rho=rho_s, mu = mu_s, sig = sig_s, beta = beta_s, 
-                periodic = periodic_s, par=par_s, dat = dat_s)
+                periodic = periodic_s, par=par_s, dat = dat_s, min_pred=-8, max_pred=8)
     }, error = function(e) {
       message(sprintf("Simulation %d failed: %s", i, e$message))
       NULL

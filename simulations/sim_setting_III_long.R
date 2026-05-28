@@ -141,7 +141,7 @@ results3_l <- with_progress({
     res <- simOneArHypothetical(
       n = n_l, rho = rho_l, mu = mu_l, sig = sig_l,
       beta = beta_l, periodic = periodic_l, par = par_l, dat = dat_l,
-      num_covsim = num_covsim_l
+      num_covsim = num_covsim_l, min_z = -8, max_z = 8
     )
     p(message = sprintf("Done %d/%d", i, num_simulations_l))
     res

@@ -108,20 +108,24 @@ GammaseqGT1 = tpm_g(zseqGT1, beta)
 DeltaseqGT1 = matrix(NA, length(zseqGT1), 3)
 for(t in 1:length(zseqGT1)) DeltaseqGT1[t,] = LaMa::stationary(GammaseqGT1[,,t]) 
 
-par(mfrow=c(1,1))
+# pdf("./simulations/figures/bias_hypothetical_I.pdf", width=7, height=4)
+par(mfrow=c(1,1), mar=c(4,4,1,1))
 plot(ksmooth(bin_midpointsGT1, mean_stateprobsGT1[, 1], "normal", bandwidth=1), col = colour[1], lwd = 3, ylab = "Pr(state | z)", 
      xlab = "covariate value z", main = "", ylim=c(0,1), type="l", bty="n")
-lines(ksmooth(bin_midpointsGT1, mean_stateprobsGT1[,1], "normal", bandwidth =1), col=colour[1], lwd=3)
+#lines(ksmooth(bin_midpointsGT1, mean_stateprobsGT1[,1], "normal", bandwidth =1), col=colour[1], lwd=3)
 lines(ksmooth(bin_midpointsGT1, mean_stateprobsGT1[, 2], "normal", bandwidth = 1), col = colour[2], lwd = 3)
 lines(ksmooth(bin_midpointsGT1, mean_stateprobsGT1[, 3], "normal", bandwidth = 1), col = colour[3], lwd = 3)
 lines(ksmooth(zseqGT1, DeltaseqGT1[, 1], "normal", bandwidth = 1), col = colour[1], lwd = 3, lty=2)
 lines(ksmooth(zseqGT1, DeltaseqGT1[, 2], "normal", bandwidth = 1), col = colour[2], lwd = 3, lty=2)
 lines(ksmooth(zseqGT1, DeltaseqGT1[, 3], "normal", bandwidth = 1), col = colour[3], lwd = 3, lty=2)
-
+legend("right",col = c(colour, "transparent", "black", "black"),
+       lwd = 3,bty = "n",lty = c(1,1,1, NA, 1, 3),legend = expression(
+         state~1, state~2, state~3, "", delta, rho))
+# dev.off()
 
 ### AR -----
 
-system.time({
+ar_time_start <- Sys.time()
 num_covsim <- 200
 num_simulations <- 200
 
@@ -153,28 +157,60 @@ for (i in 1:num_simulations) {
 lines(ksmooth(bin_midpointsGT1, mean_stateprobsGT1[, 1], "normal", bandwidth = 1), col = colour[1], lwd = 3)
 lines(ksmooth(bin_midpointsGT1, mean_stateprobsGT1[, 2], "normal", bandwidth = 1), col = colour[2], lwd = 3)
 lines(ksmooth(bin_midpointsGT1, mean_stateprobsGT1[, 3], "normal", bandwidth = 1), col = colour[3], lwd = 3)
-lines(ksmooth(zseqGT1, DeltaseqGT1[, 1], "normal", bandwidth = 1), col = colour[1], lwd = 3, lty=2)
-lines(ksmooth(zseqGT1, DeltaseqGT1[, 2], "normal", bandwidth = 1), col = colour[2], lwd = 3, lty=2)
-lines(ksmooth(zseqGT1, DeltaseqGT1[, 3], "normal", bandwidth = 1), col = colour[3], lwd = 3, lty=2)
+ar_time_end <- Sys.time()
+ar_time <- ar_time_end - ar_time_start
 
-legend("right",
-       col = c(colour, "transparent", "black", "black"),
-       lwd = 3,
-       bty = "n",
-       lty = c(1,1,1, NA, 1, 3),
-       legend = expression(
-         state~1, state~2, state~3, 
-         "", 
-         delta, 
-         rho
-       ))
-})
 ## Runtime on Apple M4 with 16GB RAM 
 # user   system   elapsed                                                                                                                                 
-# 788.648 668.265 546.659 
+# 613.337 438.260 263.713 
+
+
+#### Hypothetical stationary distribution 
+
+hyp_time_start <- Sys.time()
+num_simulations <- 200
+
+results1 <- with_progress({
+  p <- progressor(steps = num_simulations)
+  lapply(1:num_simulations, function(i) {
+    res <- fithypothetical(
+      n = n, rho = rho, mu = mu, sig = sig,
+      beta = beta, periodic = periodic, par = par,dat=dat,
+      num_covsim = num_covsim, min = -4, max = 4
+    )
+    p(message = sprintf("Done %d/%d", i, num_simulations))
+    res
+  })
+})
+
+hypothetical1 <- list(State1 = list(), State2 = list(), State3 = list())
+
+for (i in 1:num_simulations) {
+  hypothetical1$State1[[i]] <- results1[[i]]$resulthypothetical$State1
+  hypothetical1$State2[[i]] <- results1[[i]]$resulthypothetical$State2
+  hypothetical1$State3[[i]] <- results1[[i]]$resulthypothetical$State3
+}
+
+par(mfrow=c(1,2))
+
+plot(NULL, ylim = c(0, 1),
+     xlab = "covariate value z", ylab = "Pr(state | z)",
+     main = "Hypothetical stationary distribution (Setting I)", bty = "n",
+     xlim = c(-4, 4))
+
+for (i in 1:num_simulations) {
+  lines(hypothetical$State1[[i]]$x, hypothetical$State1[[i]]$y, col = alpha(colour[1], 0.1), lwd = 1)
+  lines(hypothetical$State2[[i]]$x, hypothetical$State2[[i]]$y, col = alpha(colour[2], 0.1), lwd = 1)
+  lines(hypothetical$State3[[i]]$x, hypothetical$State3[[i]]$y, col = alpha(colour[3], 0.1), lwd = 1)
+}
+
+lines(ksmooth(bin_midpointsGT1, mean_stateprobsGT1[, 1], "normal", bandwidth = 1), col = colour[1], lwd = 3)
+lines(ksmooth(bin_midpointsGT1, mean_stateprobsGT1[, 2], "normal", bandwidth = 1), col = colour[2], lwd = 3)
+lines(ksmooth(bin_midpointsGT1, mean_stateprobsGT1[, 3], "normal", bandwidth = 1), col = colour[3], lwd = 3)
+hyp_time_end <- Sys.time()
+hyp_time <- hyp_time_end - hyp_time_start
 
 #### AR and hypothetical -----
-system.time({
 num_covsim <- 200
 num_simulations <- 200
 
@@ -235,13 +271,13 @@ for (i in 1:num_simulations) {
 lines(ksmooth(bin_midpointsGT1, mean_stateprobsGT1[, 1], "normal", bandwidth = 1), col = colour[1], lwd = 3)
 lines(ksmooth(bin_midpointsGT1, mean_stateprobsGT1[, 2], "normal", bandwidth = 1), col = colour[2], lwd = 3)
 lines(ksmooth(bin_midpointsGT1, mean_stateprobsGT1[, 3], "normal", bandwidth = 1), col = colour[3], lwd = 3)
-})
+
 ## Runtime on Apple M4 with 16GB RAM
 # user   system   elapsed                                                                                                                                 
 # 701.890 480.891 296.442 
 
 ### Flexible Dirichlet regression ----
-system.time({
+dir_time_start <- Sys.time()
 par(mfrow=c(1,1))  
 num_simulations <- 200
 
@@ -291,45 +327,15 @@ lines(cut2_1$x, cut2_1$y, col = colour[2], lwd = 3)
 lines(cut3_1$x, cut3_1$y, col = colour[3], lwd = 3)
 legend("topleft",col = c(colour, "transparent"),lwd = 3,bty = "n",
        lty = c(1,1,1),legend = expression(state~1, state~2, state~3))
-})
+dir_time_end <- Sys.time()
+dir_time <- dir_time_end - dir_time_start
 ## Runtime on Apple M4 with 16GB RAM
 # user   system   elapsed                                                                                                                                 
-# 607.560   4.484 621.198 
-
-
-# plot(NULL, ylim = c(0, 1),
-#      xlab = "covariate value z", ylab = "Pr(state | z)", main = "Setting (II)", bty = "n", 
-#      xlim=c(-4, 4))
-# 
-# for (i in 1:num_simulations) {
-#   lines(gamcurve2$State1[[i]]$x, gamcurve2$State1[[i]]$y, col = alpha(colour[1], 0.1), lwd = 1)
-#   lines(gamcurve2$State2[[i]]$x, gamcurve2$State2[[i]]$y, col = alpha(colour[2], 0.1), lwd = 1)
-#   lines(gamcurve2$State3[[i]]$x, gamcurve2$State3[[i]]$y, col = alpha(colour[3], 0.1), lwd = 1)
-# }
-# 
-# 
-# lines(cut1$x, cut1$y, col = colour[1], lwd = 3)
-# lines(cut2$x, cut2$y, col = colour[2], lwd = 3)
-# lines(cut3$x, cut3$y, col = colour[3], lwd = 3)
-# 
-# 
-# plot(NULL, ylim = c(0, 1),
-#      xlab = "covariate value z", ylab = "Pr(state | z)", main = "Setting (III)", bty = "n", 
-#      xlim=c(-8, 8))
-# 
-# for (i in 1:num_simulations) {
-#   lines(gamcurve3$State1[[i]]$x, gamcurve3$State1[[i]]$y, col = alpha(colour[1], 0.1), lwd = 1)
-#   lines(gamcurve3$State2[[i]]$x, gamcurve3$State2[[i]]$y, col = alpha(colour[2], 0.1), lwd = 1)
-#   lines(gamcurve3$State3[[i]]$x, gamcurve3$State3[[i]]$y, col = alpha(colour[3], 0.1), lwd = 1)
-# }
-# 
-# lines(cut1_3$x, cut1_3$y, col = colour[1], lwd = 3)
-# lines(cut2_3$x, cut2_3$y, col = colour[2], lwd = 3)
-# lines(cut3_3$x, cut3_3$y, col = colour[3], lwd = 3)
+# 390.747   2.443 395.096 
 
 
 ### BB approach ----
-system.time({
+bb_time_start <- Sys.time()
 num_covsim <- 200
 num_simulations <- 200
 
@@ -365,7 +371,8 @@ lines(ksmooth(bin_midpointsGT1, mean_stateprobsGT1[, 2], "normal", bandwidth = 1
 lines(ksmooth(bin_midpointsGT1, mean_stateprobsGT1[, 3], "normal", bandwidth = 1), col = colour[3], lwd = 3)
 legend("right", legend = c("state 1", "state 2", "state 3"),
        col = c(colour), lwd = 2, bty = "n")
-})
+bb_time_end <- Sys.time()
+bb_time <- bb_time_end - bb_time_start
 
 ## Runtime on Apple M4 with 16GB RAM
 # user   system   elapsed                                                             

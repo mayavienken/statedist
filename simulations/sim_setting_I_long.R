@@ -35,14 +35,18 @@ beta_l <- matrix(c( 1, 2,   # 1-> 2
 # Simulation
 sim_l <-  simCovHMM(n=n_l, rho=rho_l, mu=mu_l, sig=sig_l, beta=beta_l, periodic=periodic_l)
 
-par_l = c(beta = c(
-  rep(-1, 6), rep(0,6)),
-  logitdelta = c(0,1), 
-  mu = c(6, 15, 20), 
-  sig = c(log(3),log(3),log(3))
+par_l = list(
+  beta = c(rep(-1, 6), rep(0,6)),
+  delta = c(0,1), 
+  mu = mu_l, 
+  sigma = log(sig_l)
 )
 
-fit_l <- fitCovHMM(par=par_l, x=sim_l$x, Z=matrix(sim_l$z))
+dat_l = list(x = sim$x,
+           Z = matrix(sim$z), 
+           N=3)
+
+fit <- fitCovHMM(par=par_l, dat=dat_l)
 
 Gamma_l <- tpm_g(sim_l$z, beta_l)
 Delta_l <- matrix(NA, n_l, N_l)
@@ -126,7 +130,7 @@ system.time({
     p <- progressor(steps = num_simulations_l)
     lapply(1:num_simulations_l, function(i) {
       res <- simOneAr(n = n_l, rho=rho_l, mu = mu_l, sig = sig_l, beta = beta_l, 
-                      periodic = periodic_l, par=par_l, num_covsim = num_covsim_l)
+                      periodic = periodic_l, par=par_l, dat=dat_l, num_covsim = num_covsim_l)
       p(message = sprintf("Done %d/%d", i, num_simulations_l))
       res
     })
@@ -178,8 +182,8 @@ system.time({
     lapply(1:num_simulations_l, function(i) {
       res <- simOneArHypothetical(
         n = n_l, rho = rho_l, mu = mu_l, sig = sig_l,
-        beta = beta_l, periodic = periodic_l, par = par_l,
-        num_covsim = num_covsim_l
+        beta = beta_l, periodic = periodic_l, par = par_l, dat = dat_l,
+        num_covsim = num_covsim_l, min_z = -4, max_z = 4
       )
       p(message = sprintf("Done %d/%d", i, num_simulations_l))
       res
@@ -241,7 +245,7 @@ system.time({
     p <- progressor(steps = num_simulations_l)
     lapply(1:num_simulations_l, function(i) {
       res <- oneDirGAM(n = n_l, rho=rho_l, mu = mu_l, sig = sig_l, beta = beta_l, 
-                       periodic = periodic_l, par=par_l)
+                       periodic = periodic_l, par=par_l, dat = dat_l, min_pred = -4.05, max_pred = 4.05)
       p()
       res
     })
@@ -294,8 +298,8 @@ system.time({
     p <- progressor(steps = num_simulations_l)
     lapply(1:num_simulations_l, function(i) {
       res <- simOneBB(n = n_l, rho = rho_l, mu = mu_l, sig = sig_l,
-                      beta = beta_l, periodic = periodic_l, par = par_l,
-                      num_covsim = num_covsim_l, blocklength=40)
+                      beta = beta_l, periodic = periodic_l, par = par_l, dat = dat_l,
+                      num_covsim = num_covsim_l, blocklength=60)
       p(message = sprintf("Done %d/%d", i, num_simulations_l))
       res
     })

@@ -131,8 +131,8 @@ legend("right",col = c(colour_l, "transparent", "black", "black"),
 
 
 ### AR -----
-
-num_covsim_l <- 200
+system.time({
+num_covsim_l <- 100
 num_simulations_l <- 200
 
 results_l <- with_progress({
@@ -179,9 +179,9 @@ legend("right",
          delta, 
          rho
        ))
-
+})
 #### AR and Hypothetical -----
-num_covsim_l <- 200
+num_covsim_l <- 100
 num_simulations_l <- 200
 
 results2_l <- with_progress({
@@ -190,7 +190,7 @@ results2_l <- with_progress({
     res <- simOneArHypothetical(
       n = n_l, rho = rho_l, mu = mu_l, sig = sig_l,
       beta = beta_l, periodic = periodic_l, par = par_l, dat=dat_l,
-      num_covsim = num_covsim_l
+      num_covsim = num_covsim_l, min_z = -4.05, max_z = 4.05
     )
     p(message = sprintf("Done %d/%d", i, num_simulations_l))
     res
@@ -292,7 +292,7 @@ lines(cut3_2_l$x, cut3_2_l$y, col = colour_l[3], lwd = 3)
 
 
 ### BB Approach ----
-num_covsim_l <- 2000
+num_covsim_l <- 200
 num_simulations_l <- 200
 
 results_2BB_l <- with_progress({
