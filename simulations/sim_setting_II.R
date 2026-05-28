@@ -129,7 +129,7 @@ legend("right",col = c(colour, "transparent", "black", "black"),
          state~1, state~2, state~3, "", delta, rho))
 
 ### AR -----
-
+time_ar_II_start <- Sys.time()
 num_covsim <- 200
 num_simulations <- 200
 
@@ -178,6 +178,9 @@ legend("right",
          delta, 
          rho
        ))
+
+time_ar_II_end <- Sys.time()
+time_ar_II_end-time_ar_II_start
 
 #### AR and Hypothetical  -----
 num_covsim <- 200
@@ -243,7 +246,7 @@ lines(ksmooth(bin_midpointsGT2, mean_stateprobsGT2[, 3], "normal", bandwidth = 1
 
 
 ### Flexible Dirichlet regression ----
-
+time_dir_II_start <- Sys.time()
 gam_results2 <- with_progress({
   p <- progressor(steps = num_simulations)
   lapply(1:num_simulations, function(i) {
@@ -287,10 +290,14 @@ for (i in 1:num_simulations) {
 lines(cut1_2$x, cut1_2$y, col = colour[1], lwd = 3)
 lines(cut2_2$x, cut2_2$y, col = colour[2], lwd = 3)
 lines(cut3_2$x, cut3_2$y, col = colour[3], lwd = 3)
-
+time_dir_II_end <- Sys.time()
+time_dir_II_end - time_dir_II_start
 
 
 ### BB Approach ----
+
+time_bb_II_start <- Sys.time()
+
 num_covsim <- 2000
 num_simulations <- 200
 
@@ -327,4 +334,52 @@ lines(ksmooth(bin_midpointsGT2, mean_stateprobsGT2[, 3], "normal", bandwidth = 1
 legend("right", legend = c("state 1", "state 2", "state 3"),
        col = c(colour), lwd = 2, bty = "n")
 
+time_bb_II_end <- Sys.time()
+time_bb_II_end - time_bb_II_start
 
+
+
+#### Hypothetical stationary distribution ---
+
+time_hyp_II_start <- Sys.time()
+num_simulations <- 200
+
+results2hyp <- with_progress({
+  p <- progressor(steps = num_simulations)
+  lapply(1:num_simulations, function(i) {
+    res <- fithypothetical(
+      n = n, rho = rho, mu = mu, sig = sig,
+      beta = beta, periodic = periodic, par = par,dat=dat,
+      num_covsim = num_covsim, min = -4.05, max = 4.05
+    )
+    p(message = sprintf("Done %d/%d", i, num_simulations))
+    res
+  })
+})
+
+hypothetical2 <- list(State1 = list(), State2 = list(), State3 = list())
+
+for (i in 1:num_simulations) {
+  hypothetical2$State1[[i]] <- results2hyp[[i]]$State1
+  hypothetical2$State2[[i]] <- results2hyp[[i]]$State2
+  hypothetical2$State3[[i]] <- results2hyp[[i]]$State3
+}
+
+par(mfrow=c(1,2))
+
+plot(NULL, ylim = c(0, 1),
+     xlab = "covariate value z", ylab = "Pr(state | z)",
+     main = "Hypothetical stationary distribution (Setting I)", bty = "n",
+     xlim = c(-4, 4))
+
+for (i in 1:num_simulations) {
+  lines(hypothetical2$State1[[i]]$x, hypothetical2$State1[[i]]$y, col = alpha(colour[1], 0.1), lwd = 1)
+  lines(hypothetical2$State2[[i]]$x, hypothetical2$State2[[i]]$y, col = alpha(colour[2], 0.1), lwd = 1)
+  lines(hypothetical2$State3[[i]]$x, hypothetical2$State3[[i]]$y, col = alpha(colour[3], 0.1), lwd = 1)
+}
+lines(ksmooth(bin_midpointsGT2, mean_stateprobsGT2[, 1], "normal", bandwidth = 1), col = colour[1], lwd = 3)
+lines(ksmooth(bin_midpointsGT2, mean_stateprobsGT2[, 2], "normal", bandwidth = 1), col = colour[2], lwd = 3)
+lines(ksmooth(bin_midpointsGT2, mean_stateprobsGT2[, 3], "normal", bandwidth = 1), col = colour[3], lwd = 3)
+
+time_hyp_II_end <- Sys.time()
+time_hyp_II_end - time_hyp_II_start

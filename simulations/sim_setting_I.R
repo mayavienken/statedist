@@ -157,6 +157,7 @@ for (i in 1:num_simulations) {
 lines(ksmooth(bin_midpointsGT1, mean_stateprobsGT1[, 1], "normal", bandwidth = 1), col = colour[1], lwd = 3)
 lines(ksmooth(bin_midpointsGT1, mean_stateprobsGT1[, 2], "normal", bandwidth = 1), col = colour[2], lwd = 3)
 lines(ksmooth(bin_midpointsGT1, mean_stateprobsGT1[, 3], "normal", bandwidth = 1), col = colour[3], lwd = 3)
+
 ar_time_end <- Sys.time()
 ar_time <- ar_time_end - ar_time_start
 
@@ -165,7 +166,7 @@ ar_time <- ar_time_end - ar_time_start
 # 613.337 438.260 263.713 
 
 
-#### Hypothetical stationary distribution 
+#### Hypothetical stationary distribution ----
 
 hyp_time_start <- Sys.time()
 num_simulations <- 200
@@ -211,6 +212,8 @@ hyp_time_end <- Sys.time()
 hyp_time <- hyp_time_end - hyp_time_start
 
 #### AR and hypothetical -----
+
+ar_time_start <- Sys.time()
 num_covsim <- 200
 num_simulations <- 200
 
@@ -271,7 +274,7 @@ for (i in 1:num_simulations) {
 lines(ksmooth(bin_midpointsGT1, mean_stateprobsGT1[, 1], "normal", bandwidth = 1), col = colour[1], lwd = 3)
 lines(ksmooth(bin_midpointsGT1, mean_stateprobsGT1[, 2], "normal", bandwidth = 1), col = colour[2], lwd = 3)
 lines(ksmooth(bin_midpointsGT1, mean_stateprobsGT1[, 3], "normal", bandwidth = 1), col = colour[3], lwd = 3)
-
+at_time_end <- Sys.time()
 ## Runtime on Apple M4 with 16GB RAM
 # user   system   elapsed                                                                                                                                 
 # 701.890 480.891 296.442 
