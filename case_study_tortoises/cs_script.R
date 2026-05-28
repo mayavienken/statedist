@@ -529,7 +529,7 @@ Delta_median <- apply(Delta_boot, c(1, 2), median, na.rm = TRUE)
 Delta_low <- apply(Delta_boot, c(1, 2), function(x) quantile(x, 0.025, na.rm = TRUE))
 Delta_high <- apply(Delta_boot, c(1, 2), function(x) quantile(x, 0.975, na.rm = TRUE))
 
-pdf("./case_study_tortoises/figures/cs_dirichlet_regression_ci.pdf", width=6, height=4)
+# pdf("./case_study_tortoises/figures/cs_dirichlet_regression_ci.pdf", width=6, height=4)
 par(mfrow = c(1,1), mgp = c(1.8, 0.5, 0), mar=c(3, 3, 1,1), cex.lab=1.3) 
 plot(zseq, Delta_median[, 1], type = "n",
      ylim = c(0, 1), bty="n", xlim=c(min(df.animal$temperature), max(df.animal$temperature)),
