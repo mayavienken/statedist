@@ -175,13 +175,11 @@ mu1 = 0
 ### figure comparing hypothetical stationary distribution assumption vs. covariate sequence
 # + realistic paths backsampled from fitted AR model, for given time point 
 
-#pdf("figures/paper_paths_hypothetical_real_fade.pdf", width=7, height=3)
-par(mfrow=c(1,2), mar=c(3,1,1,1))
 
 k <- 20 
 B <- 100 # number of paths to simulate
-y <- sim_low$z[81:100]
-x0 <- sim_low$z[100]
+y <- sim_low$z[230:249]
+x0 <- sim_low$z[249]
 par <- cond_dist_ARp(mu1, sigma_hat, phi_hat, k, x0)
 xsim <- mvtnorm::rmvnorm(B, par$mu_cond, par$Sigma_cond)
 paths <- cbind(xsim, rep(x0,B))
@@ -189,15 +187,18 @@ ylim <- range(c(y, paths))
 # colours are brightening the further we go in past, to illustrate the decreasing influence of past values
 #cols <- colorRampPalette(c("skyblue", "darkblue"))(20)
 cols <- alpha("darkblue", seq(0.1, 1, length.out=20))
-y <- rep(sim_low$z[100], times = 20)
 
+
+# pdf("figures/paper_paths_hypothetical_real_fade.pdf", width=7, height=3)
+par(mfrow=c(1,2), mar=c(3,1,1,1))
+y <- rep(sim_low$z[249], times = 20)
 # covariate path under hypothetical stationary distribution assumption 
 plot(ts(y),type = "n",axes = FALSE,ann = FALSE,bty = "n",ylim=ylim)
 for(i in 1:19){lines(i:(i+1), y[i:(i+1)], col = cols[i], lwd = 2)}
 points(1:20, y,pch = 16,col = "white",cex = 1)
 points(1:20, y, pch = 16, col = cols, cex = 1)
 
-y <- sim_low$z[81:100]
+y <- sim_low$z[230:249]
 
 # actual covariate path + alternative paths backsampled from fitted AR model, for given time point
 plot(ts(y), type="n", axes=FALSE, ann=FALSE, bty="n", ylim=ylim)
@@ -207,7 +208,7 @@ for(i in 1:(length(y)-1))
   lines(i:(i+1), y[i:(i+1)], col=cols[i], lwd=2)
 points(1:20, y,pch = 16,col = "white",cex = 1)
 points(1:length(y), y, pch=16, col=cols, cex=1)
-#dev.off()
+# dev.off()
 
 # added formulas to figure with keynote 'create_fig_hyp_path.key'
 
