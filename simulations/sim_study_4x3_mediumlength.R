@@ -28,9 +28,9 @@ plot(NULL, ylim = c(0, 1),
      xlim = c(-4, 4))
 
 for (i in 1:num_simulations) {
-  lines(hypothetical$State1[[i]]$x, hypothetical$State1[[i]]$y, col = alpha(colour[1], 0.1), lwd = 1)
-  lines(hypothetical$State2[[i]]$x, hypothetical$State2[[i]]$y, col = alpha(colour[2], 0.1), lwd = 1)
-  lines(hypothetical$State3[[i]]$x, hypothetical$State3[[i]]$y, col = alpha(colour[3], 0.1), lwd = 1)
+  lines(hypothetical$State1[[i]]$x, hypothetical$State1[[i]]$y, col = alpha(colour[1], 0.05), lwd = 1)
+  lines(hypothetical$State2[[i]]$x, hypothetical$State2[[i]]$y, col = alpha(colour[2], 0.05), lwd = 1)
+  lines(hypothetical$State3[[i]]$x, hypothetical$State3[[i]]$y, col = alpha(colour[3], 0.05), lwd = 1)
 }
 
 lines(cut1_1$x, cut1_1$y, col = colour[1], lwd = 3)
@@ -46,9 +46,9 @@ plot(NULL, ylim = c(0, 1),
      xlim = c(-4, 4))
 
 for (i in 1:num_simulations) {
-  lines(curve1$State1[[i]]$x, curve1$State1[[i]]$y, col = alpha(colour[1], 0.1), lwd = 1)
-  lines(curve1$State2[[i]]$x, curve1$State2[[i]]$y, col = alpha(colour[2], 0.1), lwd = 1)
-  lines(curve1$State3[[i]]$x, curve1$State3[[i]]$y, col = alpha(colour[3], 0.1), lwd = 1)
+  lines(curve1$State1[[i]]$x, curve1$State1[[i]]$y, col = alpha(colour[1], 0.05), lwd = 1)
+  lines(curve1$State2[[i]]$x, curve1$State2[[i]]$y, col = alpha(colour[2], 0.05), lwd = 1)
+  lines(curve1$State3[[i]]$x, curve1$State3[[i]]$y, col = alpha(colour[3], 0.05), lwd = 1)
 }
 lines(cut1_1$x, cut1_1$y, col = colour[1], lwd = 3)
 lines(cut2_1$x, cut2_1$y, col = colour[2], lwd = 3)
@@ -62,9 +62,9 @@ plot(NULL, ylim = c(0, 1),
      xlim=c(-4, 4))
 
 for (i in 1:num_simulations) {
-  lines(curve_1BB$State1[[i]]$x, curve_1BB$State1[[i]]$y, col = alpha(colour[1], 0.1), lwd = 1)
-  lines(curve_1BB$State2[[i]]$x, curve_1BB$State2[[i]]$y, col = alpha(colour[2], 0.1), lwd = 1)
-  lines(curve_1BB$State3[[i]]$x, curve_1BB$State3[[i]]$y, col = alpha(colour[3], 0.1), lwd = 1)
+  lines(curve_1BB$State1[[i]]$x, curve_1BB$State1[[i]]$y, col = alpha(colour[1], 0.05), lwd = 1)
+  lines(curve_1BB$State2[[i]]$x, curve_1BB$State2[[i]]$y, col = alpha(colour[2], 0.05), lwd = 1)
+  lines(curve_1BB$State3[[i]]$x, curve_1BB$State3[[i]]$y, col = alpha(colour[3], 0.05), lwd = 1)
 }
 lines(cut1_1$x, cut1_1$y, col = colour[1], lwd = 3)
 lines(cut2_1$x, cut2_1$y, col = colour[2], lwd = 3)
@@ -79,9 +79,9 @@ plot(NULL, ylim = c(0, 1),
      xlim=c(-4, 4))
 
 for (i in 1:num_simulations) {
-  lines(gamcurve1$State1[[i]]$x, gamcurve1$State1[[i]]$y, col = alpha(colour[1], 0.1), lwd = 1)
-  lines(gamcurve1$State2[[i]]$x, gamcurve1$State2[[i]]$y, col = alpha(colour[2], 0.1), lwd = 1)
-  lines(gamcurve1$State3[[i]]$x, gamcurve1$State3[[i]]$y, col = alpha(colour[3], 0.1), lwd = 1)
+  lines(gamcurve1$State1[[i]]$x, gamcurve1$State1[[i]]$y, col = alpha(colour[1], 0.05), lwd = 1)
+  lines(gamcurve1$State2[[i]]$x, gamcurve1$State2[[i]]$y, col = alpha(colour[2], 0.05), lwd = 1)
+  lines(gamcurve1$State3[[i]]$x, gamcurve1$State3[[i]]$y, col = alpha(colour[3], 0.05), lwd = 1)
 }
 
 lines(cut1_1$x, cut1_1$y, col = colour[1], lwd = 3)
@@ -100,9 +100,9 @@ plot(NULL, ylim = c(0, 1),
      xlim = c(-4, 4))
 
 for (i in 1:num_simulations) {
-  lines(hypothetical2$State1[[i]]$x, hypothetical2$State1[[i]]$y, col = alpha(colour[1], 0.1), lwd = 1)
-  lines(hypothetical2$State2[[i]]$x, hypothetical2$State2[[i]]$y, col = alpha(colour[2], 0.1), lwd = 1)
-  lines(hypothetical2$State3[[i]]$x, hypothetical2$State3[[i]]$y, col = alpha(colour[3], 0.1), lwd = 1)
+  lines(hypothetical2$State1[[i]]$x, hypothetical2$State1[[i]]$y, col = alpha(colour[1], 0.05), lwd = 1)
+  lines(hypothetical2$State2[[i]]$x, hypothetical2$State2[[i]]$y, col = alpha(colour[2], 0.05), lwd = 1)
+  lines(hypothetical2$State3[[i]]$x, hypothetical2$State3[[i]]$y, col = alpha(colour[3], 0.05), lwd = 1)
 }
 
 lines(cut1_2$x, cut1_2$y, col = colour[1], lwd = 3)
@@ -115,9 +115,9 @@ plot(NULL, ylim = c(0, 1),
      xlim = c(-4, 4))
 
 for (i in 1:num_simulations) {
-  lines(curve2$State1[[i]]$x, curve2$State1[[i]]$y, col = alpha(colour[1], 0.1), lwd = 1)
-  lines(curve2$State2[[i]]$x, curve2$State2[[i]]$y, col = alpha(colour[2], 0.1), lwd = 1)
-  lines(curve2$State3[[i]]$x, curve2$State3[[i]]$y, col = alpha(colour[3], 0.1), lwd = 1)
+  lines(curve2$State1[[i]]$x, curve2$State1[[i]]$y, col = alpha(colour[1], 0.05), lwd = 1)
+  lines(curve2$State2[[i]]$x, curve2$State2[[i]]$y, col = alpha(colour[2], 0.05), lwd = 1)
+  lines(curve2$State3[[i]]$x, curve2$State3[[i]]$y, col = alpha(colour[3], 0.05), lwd = 1)
 }
 lines(cut1_2$x, cut1_2$y, col = colour[1], lwd = 3)
 lines(cut2_2$x, cut2_2$y, col = colour[2], lwd = 3)
@@ -129,9 +129,9 @@ plot(NULL, ylim = c(0, 1),
      xlim=c(-4, 4))
 
 for (i in 1:num_simulations) {
-  lines(curve_2BB$State1[[i]]$x, curve_2BB$State1[[i]]$y, col = alpha(colour[1], 0.1), lwd = 1)
-  lines(curve_2BB$State2[[i]]$x, curve_2BB$State2[[i]]$y, col = alpha(colour[2], 0.1), lwd = 1)
-  lines(curve_2BB$State3[[i]]$x, curve_2BB$State3[[i]]$y, col = alpha(colour[3], 0.1), lwd = 1)
+  lines(curve_2BB$State1[[i]]$x, curve_2BB$State1[[i]]$y, col = alpha(colour[1], 0.05), lwd = 1)
+  lines(curve_2BB$State2[[i]]$x, curve_2BB$State2[[i]]$y, col = alpha(colour[2], 0.05), lwd = 1)
+  lines(curve_2BB$State3[[i]]$x, curve_2BB$State3[[i]]$y, col = alpha(colour[3], 0.05), lwd = 1)
 }
 lines(cut1_2$x, cut1_2$y, col = colour[1], lwd = 3)
 lines(cut2_2$x, cut2_2$y, col = colour[2], lwd = 3)
@@ -143,9 +143,9 @@ plot(NULL, ylim = c(0, 1),
      xlim=c(-4, 4))
 
 for (i in 1:num_simulations) {
-  lines(gamcurve2$State1[[i]]$x, gamcurve2$State1[[i]]$y, col = alpha(colour[1], 0.1), lwd = 1)
-  lines(gamcurve2$State2[[i]]$x, gamcurve2$State2[[i]]$y, col = alpha(colour[2], 0.1), lwd = 1)
-  lines(gamcurve2$State3[[i]]$x, gamcurve2$State3[[i]]$y, col = alpha(colour[3], 0.1), lwd = 1)
+  lines(gamcurve2$State1[[i]]$x, gamcurve2$State1[[i]]$y, col = alpha(colour[1], 0.05), lwd = 1)
+  lines(gamcurve2$State2[[i]]$x, gamcurve2$State2[[i]]$y, col = alpha(colour[2], 0.05), lwd = 1)
+  lines(gamcurve2$State3[[i]]$x, gamcurve2$State3[[i]]$y, col = alpha(colour[3], 0.05), lwd = 1)
 }
 
 lines(cut1_2$x, cut1_2$y, col = colour[1], lwd = 3)
@@ -162,9 +162,9 @@ plot(NULL, ylim = c(0, 1),
      xlim = c(-8, 8))
 
 for (i in 1:num_simulations) {
-  lines(hypothetical3$State1[[i]]$x, hypothetical3$State1[[i]]$y, col = alpha(colour[1], 0.1), lwd = 1)
-  lines(hypothetical3$State2[[i]]$x, hypothetical3$State2[[i]]$y, col = alpha(colour[2], 0.1), lwd = 1)
-  lines(hypothetical3$State3[[i]]$x, hypothetical3$State3[[i]]$y, col = alpha(colour[3], 0.1), lwd = 1)
+  lines(hypothetical3$State1[[i]]$x, hypothetical3$State1[[i]]$y, col = alpha(colour[1], 0.05), lwd = 1)
+  lines(hypothetical3$State2[[i]]$x, hypothetical3$State2[[i]]$y, col = alpha(colour[2], 0.05), lwd = 1)
+  lines(hypothetical3$State3[[i]]$x, hypothetical3$State3[[i]]$y, col = alpha(colour[3], 0.05), lwd = 1)
 }
 
 lines(cut1_3$x, cut1_3$y, col = colour[1], lwd = 3)
@@ -178,9 +178,9 @@ plot(NULL, ylim = c(0, 1),
      xlim=c(-8, 8))
 
 for (i in 1:num_simulations) {
-  lines(curve3$State1[[i]]$x, curve3$State1[[i]]$y, col = alpha(colour[1], 0.1), lwd = 1)
-  lines(curve3$State2[[i]]$x, curve3$State2[[i]]$y, col = alpha(colour[2], 0.1), lwd = 1)
-  lines(curve3$State3[[i]]$x, curve3$State3[[i]]$y, col = alpha(colour[3], 0.1), lwd = 1)
+  lines(curve3$State1[[i]]$x, curve3$State1[[i]]$y, col = alpha(colour[1], 0.05), lwd = 1)
+  lines(curve3$State2[[i]]$x, curve3$State2[[i]]$y, col = alpha(colour[2], 0.05), lwd = 1)
+  lines(curve3$State3[[i]]$x, curve3$State3[[i]]$y, col = alpha(colour[3], 0.05), lwd = 1)
 }
 lines(cut1_3$x, cut1_3$y, col = colour[1], lwd = 3)
 lines(cut2_3$x, cut2_3$y, col = colour[2], lwd = 3)
@@ -192,9 +192,9 @@ plot(NULL, ylim = c(0, 1),
      xlim=c(-8, 8))
 
 for (i in 1:num_simulations) {
-  lines(curve_3BB$State1[[i]]$x, curve_3BB$State1[[i]]$y, col = alpha(colour[1], 0.1), lwd = 1)
-  lines(curve_3BB$State2[[i]]$x, curve_3BB$State2[[i]]$y, col = alpha(colour[2], 0.1), lwd = 1)
-  lines(curve_3BB$State3[[i]]$x, curve_3BB$State3[[i]]$y, col = alpha(colour[3], 0.1), lwd = 1)
+  lines(curve_3BB$State1[[i]]$x, curve_3BB$State1[[i]]$y, col = alpha(colour[1], 0.05), lwd = 1)
+  lines(curve_3BB$State2[[i]]$x, curve_3BB$State2[[i]]$y, col = alpha(colour[2], 0.05), lwd = 1)
+  lines(curve_3BB$State3[[i]]$x, curve_3BB$State3[[i]]$y, col = alpha(colour[3], 0.05), lwd = 1)
 }
 lines(cut1_3$x, cut1_3$y, col = colour[1], lwd = 3)
 lines(cut2_3$x, cut2_3$y, col = colour[2], lwd = 3)
@@ -206,9 +206,9 @@ plot(NULL, ylim = c(0, 1),
      xlim=c(-8, 8))
 
 for (i in 1:num_simulations) {
-  lines(gamcurve3$State1[[i]]$x, gamcurve3$State1[[i]]$y, col = alpha(colour[1], 0.1), lwd = 1)
-  lines(gamcurve3$State2[[i]]$x, gamcurve3$State2[[i]]$y, col = alpha(colour[2], 0.1), lwd = 1)
-  lines(gamcurve3$State3[[i]]$x, gamcurve3$State3[[i]]$y, col = alpha(colour[3], 0.1), lwd = 1)
+  lines(gamcurve3$State1[[i]]$x, gamcurve3$State1[[i]]$y, col = alpha(colour[1], 0.05), lwd = 1)
+  lines(gamcurve3$State2[[i]]$x, gamcurve3$State2[[i]]$y, col = alpha(colour[2], 0.05), lwd = 1)
+  lines(gamcurve3$State3[[i]]$x, gamcurve3$State3[[i]]$y, col = alpha(colour[3], 0.05), lwd = 1)
 }
 
 lines(cut1_3$x, cut1_3$y, col = colour[1], lwd = 3)

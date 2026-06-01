@@ -187,9 +187,9 @@ results1 <- with_progress({
 hypothetical1 <- list(State1 = list(), State2 = list(), State3 = list())
 
 for (i in 1:num_simulations) {
-  hypothetical1$State1[[i]] <- results1[[i]]$resulthypothetical$State1
-  hypothetical1$State2[[i]] <- results1[[i]]$resulthypothetical$State2
-  hypothetical1$State3[[i]] <- results1[[i]]$resulthypothetical$State3
+  hypothetical1$State1[[i]] <- results1[[i]]$State1
+  hypothetical1$State2[[i]] <- results1[[i]]$State2
+  hypothetical1$State3[[i]] <- results1[[i]]$State3
 }
 
 par(mfrow=c(1,2))
@@ -200,9 +200,9 @@ plot(NULL, ylim = c(0, 1),
      xlim = c(-4, 4))
 
 for (i in 1:num_simulations) {
-  lines(hypothetical$State1[[i]]$x, hypothetical$State1[[i]]$y, col = alpha(colour[1], 0.1), lwd = 1)
-  lines(hypothetical$State2[[i]]$x, hypothetical$State2[[i]]$y, col = alpha(colour[2], 0.1), lwd = 1)
-  lines(hypothetical$State3[[i]]$x, hypothetical$State3[[i]]$y, col = alpha(colour[3], 0.1), lwd = 1)
+  lines(hypothetical1$State1[[i]]$x, hypothetical1$State1[[i]]$y, col = alpha(colour[1], 0.1), lwd = 1)
+  lines(hypothetical1$State2[[i]]$x, hypothetical1$State2[[i]]$y, col = alpha(colour[2], 0.1), lwd = 1)
+  lines(hypothetical1$State3[[i]]$x, hypothetical1$State3[[i]]$y, col = alpha(colour[3], 0.1), lwd = 1)
 }
 
 lines(ksmooth(bin_midpointsGT1, mean_stateprobsGT1[, 1], "normal", bandwidth = 1), col = colour[1], lwd = 3)
