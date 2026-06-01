@@ -298,7 +298,7 @@ time_dir_II_end - time_dir_II_start
 
 time_bb_II_start <- Sys.time()
 
-num_covsim <- 2000
+num_covsim <- 200
 num_simulations <- 200
 
 results_2BB <- with_progress({
