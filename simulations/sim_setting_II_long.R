@@ -249,7 +249,7 @@ gam_results2_l <- with_progress({
   p <- progressor(steps = num_simulations_l)
   lapply(1:num_simulations_l, function(i) {
     res <- oneDirGAM(n = n_l, rho = rho_l, mu = mu_l, sig = sig_l, beta = beta_l, periodic = periodic_l, 
-                     par = par_l, dat = dat_l, min_pred = -4, max_pred = 4)
+                     par = par_l, dat = dat_l, min_pred = -4.05, max_pred = 4.05)
     p()
     res
   })
@@ -262,7 +262,7 @@ for (i in 1:num_simulations_l) {
   gamcurve2_l$State3[[i]] <- gam_results2_l[[i]]$State3
 }
 
-trim_to_range_l <- function(x, y, xmin = -4.1, xmax = 4.1) {
+trim_to_range_l <- function(x, y, xmin = -4.05, xmax = 4.05) {
   keep <- x >= xmin & x <= xmax
   list(x = x[keep], y = y[keep])
 }

@@ -12,7 +12,6 @@ source("functions/sim_study.r")
 colour_l = c("orange", "skyblue", "seagreen")
 
 # Parameters ----
-set.seed(22)
 N_l <- 3 # number of states
 n_l <- 10000 # dimension of simulated dataset (length of time series) - CHANGED TO LARGE N
 num_simulations_l <- 200 # number of simulated datasets 
@@ -42,8 +41,8 @@ par_l = list(
   sigma = log(sig_l)
 )
 
-dat_l = list(x = sim$x,
-           Z = matrix(sim$z), 
+dat_l = list(x = sim_l$x,
+           Z = matrix(sim_l$z), 
            N=3)
 
 fit <- fitCovHMM(par=par_l, dat=dat_l)
@@ -299,7 +298,7 @@ system.time({
     lapply(1:num_simulations_l, function(i) {
       res <- simOneBB(n = n_l, rho = rho_l, mu = mu_l, sig = sig_l,
                       beta = beta_l, periodic = periodic_l, par = par_l, dat = dat_l,
-                      num_covsim = num_covsim_l, blocklength=60)
+                      num_covsim = num_covsim_l, blocklength=70)
       p(message = sprintf("Done %d/%d", i, num_simulations_l))
       res
     })
