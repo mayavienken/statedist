@@ -80,11 +80,11 @@ Deltaseq <- compute_stationary_curve(zseq, beta, N)
 plot_state_probs <- function(z, Delta, zseq, Deltaseq, main_title) {
   plot(0, 0,xlim = c(-4, 4.5), ylim = c(0, 1),
        col = "transparent",xlab = "covariate value z",
-       ylab = "Pr(state i | z)",main = main_title,bty = "n")
+       ylab = "Pr(state | z)",main = main_title,bty = "n")
   
   for (state in 1:ncol(Delta)) {
     points(jitter(z, 0), Delta[, state],
-           col = alpha(colour[state], 0.1), pch = 20)
+           col = alpha(colour[state], 0.05), pch = 20)
     
     lines(zseq, Deltaseq[, state],
           col = colour[state], lwd = 3, lty = 2)
@@ -99,12 +99,16 @@ plot_state_probs(z_low, Delta_low, zseq, Deltaseq,
                  "Setting II: low persistence")
 
 # 2x2 plot with time series and state probabilities + hypotheticals
+pdf("figures/talk_samehypo_differentpersistence.pdf", width=8, height=5)
 par(mfrow = c(2, 2), mar = c(4, 4, 2, 1))
-plot(ts(sim_high$z[1:500]), type = "l", xlab = "time", ylab = "covariate value z", main = "Setting I: high persistence (first 500 obs.)", bty="n")
-plot(ts(sim_low$z[1:500]), type = "l", xlab = "time", ylab = "covariate value z", main = "Setting II: low persistence", bty="n")
+plot(ts(sim_high$z[1:500]), type = "l", xlab = "time", ylab = "covariate value z", main = "High persistence (first 500 obs.)", bty="n")
+points(84, sim_high$z[84], pch=16, col="red", cex=1)
+plot(ts(sim_low$z[1:500]), type = "l", xlab = "time", ylab = "covariate value z", main = "Low persistence", bty="n")
 plot_state_probs(z_high, Delta_high, zseq, Deltaseq, "")
+points(rep(sim_high$z[84],3), Delta_high[84, ], pch=16, col=colour, cex=1)
+points(rep(sim_high$z[84],3), Delta_high[84, ], pch=1, col="red", cex=1)
 plot_state_probs(z_low, Delta_low, zseq, Deltaseq,"")
-
+dev.off()
 
 ### Plot showing time series with two highlighted points (for talk)
 # pdf("figures/talk_time_series.pdf", width=9, height=4)

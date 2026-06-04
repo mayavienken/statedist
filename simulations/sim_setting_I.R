@@ -123,6 +123,18 @@ legend("right",col = c(colour, "transparent", "black", "black"),
          state~1, state~2, state~3, "", delta, rho))
 # dev.off()
 
+# pdf("./simulations/figures/hypothetical_I.pdf", width=7, height=4)
+par(mfrow=c(1,1), mar=c(4,4,1,1))
+plot(ksmooth(zseqGT1, DeltaseqGT1[, 1], "normal", bandwidth = 1), col = colour[1], lwd = 3, lty=2, ylab = "Pr(state | z)", 
+     xlab = "covariate value z", main = "", ylim=c(0,1), type="l", bty="n")
+#lines(ksmooth(zseqGT1, DeltaseqGT1[, 1], "normal", bandwidth = 1), col = colour[1], lwd = 3, lty=2)
+lines(ksmooth(zseqGT1, DeltaseqGT1[, 2], "normal", bandwidth = 1), col = colour[2], lwd = 3, lty=2)
+lines(ksmooth(zseqGT1, DeltaseqGT1[, 3], "normal", bandwidth = 1), col = colour[3], lwd = 3, lty=2)
+legend("right",col = c(colour, "transparent", "black", "black"),
+       lwd = 3,bty = "n",lty = c(3,3,3),legend = expression(
+         state~1, state~2, state~3))
+# dev.off()
+
 ### AR -----
 
 ar_time_start <- Sys.time()
