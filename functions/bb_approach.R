@@ -1,10 +1,14 @@
+# Functions to apply BB approach 
+
 source("./functions/sim_fit_inhomogeneousHMM.r")
+
 library(LaMa) 
 library(scales)
 library(parallel)
 library(progressr)
 library(zoo)
 
+# simulate bootstrap covariate series by resampling blocks of the original series
 block_bootstrap <- function(ts, block_size, n) {
   num_blocks <- ceiling(n / block_size)
   block_starts <- sample(1:(length(ts) - block_size + 1), num_blocks, replace = TRUE)
@@ -13,7 +17,7 @@ block_bootstrap <- function(ts, block_size, n) {
   return(bootstrap_sample[1:n])  # trim to match original length
 }
 
-
+# Markov-chain-implied empirical state probabilities 
 compStateProbs <- function(z, beta, n) {
   Gamma <- tpm_g(z, beta)
   Delta <- matrix(NA, n, 3)
@@ -24,7 +28,7 @@ compStateProbs <- function(z, beta, n) {
   return(Delta)
 }
 
-
+# simulate data, fit HMM, and apply block bootstrap approach to generate covariate series and compute mean state probabilities within covariate bins
 simOneBB <- function(n, rho, mu, sig, beta, periodic, par, num_covsim, blocklength=24) {
   
   sim <- simCovHMM(n = n, rho = rho, mu = mu, sig = sig, beta = beta, periodic = periodic)

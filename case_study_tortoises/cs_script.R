@@ -39,7 +39,7 @@ mu.1 <- c(4.5,12, 40)       # step length mean (in metres)
 sigma.1 <- c(2,4, 20)       # step length SD
 kappa.1 <- c(1.5, 1.5, 0.5) # turning angle concentration
 
-# parameter list for RTMB (transformations ensuring parameter constraints)
+# parameter list as needed when using LaMa + RTMB (transformations ensuring parameter constraints)
 par = list(
   logmu = log(mu.1), 
   logsigma = log(sigma.1), 
@@ -58,7 +58,7 @@ dat = list(
 # negative log-likelihood with RTMB
 nll.rtmb = function(par) {
   
-  getAll(par, dat)  
+  getAll(par, dat)  # make everything accessible without using $
   Gamma = tpm_g(Z, beta) # transition matrices depending on temperature
   ADREPORT(Gamma)
   
@@ -275,6 +275,7 @@ prob = apply(Prob, 2, mean) # average state occupancy
 
 #pdf("./case_study_tortoises/figures/obs_dist.pdf", width=4.5, height=3)
 par(mfrow = c(1, 2), mar = c(4, 3, 2, 1), cex.lab = 1, mgp = c(1.8, 0.5, 0))
+# step lengths (in metres)
 hist(df.animal$step, breaks = 60, col = "lightgrey", xlab = "step length (in metres)", ylab="density",  main = "", prob = T, border=0)
 for(j in 1:3) curve(prob[j] * dgamma2(x, mu.hat[j], sigma.hat[j]), 
                     lwd = 2, add = T, col = colour[j])
@@ -283,6 +284,7 @@ curve(prob[1]*dgamma2(x, mu.hat[1], sigma.hat[1]) + prob[2]*dgamma2(x, mu.hat[2]
 
 mu.kappa = c(pi, pi, 0)
 legend("topright", col=c(colour, "black"), legend=expression(state~1, state~2, state~3, marginal), lwd=2, lty=c(1, 1, 1, 2), bty="n", cex=1)
+# turning angles
 hist(df.animal$angle, breaks = seq(-pi, pi, length.out=61), col = "lightgrey", xlab = "turning angle", ylab="", main = "", prob = T, border=0)
 for(j in 1:3) curve(prob[j] * dvm(x, mu.kappa[j], kappa.hat[j]), 
                     lwd = 2, add = T, col = colour[j])
@@ -302,7 +304,8 @@ z <- df.animal$temperature[10:n]
 
 zseq <- seq(min(z)-0.5, max(z)+0.5, length = 200)
 Gammaseq <- tpm_g(zseq, beta.hat)
-Deltaseq <- matrix(NA, length(zseq), N)
+# to store hypothetical stationary distribution over covariate values 
+Deltaseq <- matrix(NA, length(zseq), N) 
 for (t in 1:length(zseq)) Deltaseq[t,] <- LaMa::stationary(Gammaseq[,,t])
 
 # pdf("./case_study_tortoises/figures/cs_hypothetical.pdf", width=6, height=4)
@@ -338,21 +341,25 @@ Deltaseq[133,]
 df.animal$doy <- as.numeric(format(df.animal$timestamp, "%j"))
 
 system.time({
-  mod_lm <- lm(temperature ~ sin((2*pi*doy)/365) + cos((2*pi*doy)/365), data=df.animal)
+  # as we previously saw, temperature shows strong seasonal patterns
+  # so we fit a simple model to capture this seasonality and then apply block bootstrap to the residuals
+    mod_lm <- lm(temperature ~ sin((2*pi*doy)/365) + cos((2*pi*doy)/365), data=df.animal)
   
   ### plot(mod_lm$residuals, type="l")
-  
+  # apply BB to residuals of mod_lm
   simulated_x <- mclapply(1:100, function(i) block_bootstrap(mod_lm$residuals, 24, n), mc.cores = max(1, detectCores() - 2))
   simulated_x <- do.call(cbind, simulated_x)
+  # add fitted values to the simulated residuals to get realistic simulated temperature time series (again now with seasonal patterns)
   simulated_x <- simulated_x + mod_lm$fitted.values
   
   sim_delta <- future_lapply(1:100,
     function(i) compStateProbs(simulated_x[, i], mod.rtmb$beta, n=length(simulated_x[,1])))
   sim_delta <- array(unlist(sim_delta), dim = c(n, N, 100))
-  
+    
   x_bins <- seq(min(simulated_x)-1, max(simulated_x)+1, length.out = 50)
   bin_midpoints <- (x_bins[-1] + x_bins[-length(x_bins)]) / 2
   
+  # binning
   mean_state_probs <- matrix(NA, nrow = length(bin_midpoints), ncol = N)
   for (state in 1:N) {
     mean_state_probs[, state] <- sapply(1:(length(x_bins) - 1), function(b) {
@@ -396,6 +403,7 @@ mean_state_probs[30,]
 
 # Dirichlet regression ----
 
+# fit flexible Dirichlet regression (thin-plate regression spline as default)
 mod <- dir_reg(Delta, z, k = 8, bs="tp", lambda0=100)
 
 summary(mod)
@@ -542,5 +550,5 @@ for (state in 1:N) {
           col = adjustcolor(col_state, alpha.f = 0.2), border = NA)
   lines(x_p, Mean[,state], col = colour[state], lwd = 3, lty = 1)
 }
-#dev.off()
+# dev.off()
 })

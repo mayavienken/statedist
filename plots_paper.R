@@ -99,7 +99,7 @@ plot_state_probs(z_low, Delta_low, zseq, Deltaseq,
                  "Setting II: low persistence")
 
 # 2x2 plot with time series and state probabilities + hypotheticals
-pdf("figures/talk_samehypo_differentpersistence.pdf", width=8, height=5)
+# pdf("figures/talk_samehypo_differentpersistence.pdf", width=8, height=5)
 par(mfrow = c(2, 2), mar = c(4, 4, 2, 1))
 plot(ts(sim_high$z[1:500]), type = "l", xlab = "time", ylab = "covariate value z", main = "High persistence (first 500 obs.)", bty="n")
 points(84, sim_high$z[84], pch=16, col="red", cex=1)
@@ -108,7 +108,7 @@ plot_state_probs(z_high, Delta_high, zseq, Deltaseq, "")
 points(rep(sim_high$z[84],3), Delta_high[84, ], pch=16, col=colour, cex=1)
 points(rep(sim_high$z[84],3), Delta_high[84, ], pch=1, col="red", cex=1)
 plot_state_probs(z_low, Delta_low, zseq, Deltaseq,"")
-dev.off()
+# dev.off()
 
 ### Plot showing time series with two highlighted points (for talk)
 # pdf("figures/talk_time_series.pdf", width=9, height=4)
@@ -237,47 +237,12 @@ points(1:(n/2), sim_low$z[1:1000],
        pch = 16, 
        cex = 0.8)
 # dev.off()
-par = c(beta = c(rep(-1, 6), rep(0,6)),
-        logitdelta = c(0,0,1), 
+par = list(beta = c(rep(-1, 6), rep(0,6)),
+        delta = c(0,0,1), 
         mu = c(6, 15, 20), 
-        sig = sig)
+        sigma = log(sig))
 
-par = c(beta = c(beta),
-        logitdelta = c(0,1), 
-        mu = mu, 
-        sig = log(sig))
 ar_sim <- applyAr(sim_low, par, 1000)
-
-
-#pdf("figures/bins_sim_cov.pdf", width=4, height=10)
-layout(matrix(c(1,2,3,4), ncol=1), heights=c(0.7,0.7,0.1,0.7))
-
-par(mar=c(1,1,1,1))
-
-sim1 <- ar_sim$sim_z[,1][1:1000]
-sim_bins <- cut(sim1, breaks=z_breaks, include.lowest=TRUE)
-sim_colors <- bin_colors[as.numeric(sim_bins)]
-plot(1:1000, sim1, type="n", axes=FALSE, ann=FALSE, main="Simulation 1", bty="l")
-lines(1:1000, sim1, col="gray50", lwd=1)
-points(1:1000, sim1, col=sim_colors, pch=16, cex=0.8)
-
-sim2 <- ar_sim$sim_z[,2][1:1000]
-sim_bins <- cut(sim2, breaks=z_breaks, include.lowest=TRUE)
-sim_colors <- bin_colors[as.numeric(sim_bins)]
-plot(1:1000, sim2, type="n", axes=FALSE, ann=FALSE, main="Simulation 2", bty="l")
-lines(1:1000, sim2, col="gray50", lwd=1)
-points(1:1000, sim2, col=sim_colors, pch=16, cex=0.8)
-
-plot.new()
-
-sim250 <- ar_sim$sim_z[,250][1:1000]
-sim_bins <- cut(sim250, breaks=z_breaks, include.lowest=TRUE)
-sim_colors <- bin_colors[as.numeric(sim_bins)]
-plot(1:1000, sim250, type="n", axes=FALSE, ann=FALSE, main="Simulation 250", bty="l")
-lines(1:1000, sim250, col="gray50", lwd=1)
-points(1:1000, sim250, col=sim_colors, pch=16, cex=0.8)
-
-#dev.off()
 
 
 par(mfrow=c(1,1), mar=c(4,4,2,1))

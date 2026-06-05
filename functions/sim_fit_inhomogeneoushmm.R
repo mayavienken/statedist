@@ -1,3 +1,7 @@
+### Simulate data + fit inhomogeneous HMM
+# Functions to simulate data from an inhomogeneous HMM 
+# and to fit such a model via maximum likelihood using RTMB
+
 library(LaMa)
 
 colour = c("orange", "skyblue", "seagreen")
@@ -29,7 +33,7 @@ simCovHMM <- function(n, mu, sig, beta, periodic = TRUE,
   Z <- matrix(z)
   Gamma <- tpm_g(Z[-1, ], beta)
   
-  # # simulate hidden states
+  # simulate hidden states
   delta <- rep(1/3, 3)
   s <- numeric(n)
   s[1] <- sample(1:3, 1, prob = delta)
@@ -53,7 +57,7 @@ fitCovHMM <- function(par, dat) {
     beta <- matrix(beta, nrow = N*(N-1))
     Gamma <- tpm_g(Z[-1, ], beta) # transition probability matrices
     
-    delta <- c(1, exp(delta[1]), exp(delta[2]))
+    delta <- c(1, exp(delta[1]), exp(delta[2])) # initial state distribution
     delta <- delta / sum(delta)
     
     mu <- mu        # state-dependent means
@@ -61,11 +65,11 @@ fitCovHMM <- function(par, dat) {
     sigma <- exp(sigma)  # state-dependent standard deviations
     REPORT(sigma); ADREPORT(sigma)
     
-    # emission probabilities
+    # matrix of state-dependent probabilities/ density values 
     allprobs <- matrix(1, length(x), N) 
     for (j in 1:3) allprobs[, j] <- dnorm(x, mu[j], sigma[j])
     
-    -forward_g(delta, Gamma, allprobs)
+    -forward_g(delta, Gamma, allprobs) # general forward algorithm with time-varying TPM
   }
   
   # create automatically differentiable objective

@@ -1,4 +1,4 @@
-
+# Functions to apply AR approach
 source("./functions/sim_fit_inhomogeneousHMM.r")
 
 library(LaMa) 
@@ -26,10 +26,10 @@ simAr <- function(n, z) {
   return(z_gen)
 }
 
-# compute state probabilities for a given covariate sequence
+# compute Markov-chain-implied empirical state probabilities for a given covariate sequence
 compStateProbs <- function(z, beta, n) {
   
-  Gamma <- tpm_g(z, beta)
+  Gamma <- tpm_g(z, beta) # transition probability matrix for each time step
   
   Delta <- matrix(NA, n, 3)
   Delta[1, ] <- rep(1/3, 3) # initialise with uniform distribution

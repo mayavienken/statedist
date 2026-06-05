@@ -5,9 +5,9 @@ source("./functions/ar_approach.r")
 source("./functions/bb_approach.r")
 source("./functions/dir_reg.r")
 
-# for simulation study
+# to apply the AR approach to one simulated dataset and compute mean state probabilities over covariate bins
 simOneAr <- function(n, rho, mu, sig, beta, periodic, par, dat, num_covsim) {
-  
+  # simulate data + fit HMM
   sim <- simCovHMM(n = n, rho = rho, mu = mu, sig = sig, beta = beta, periodic = periodic)
   dat_sim <- list(
     x = sim$x,
@@ -16,12 +16,14 @@ simOneAr <- function(n, rho, mu, sig, beta, periodic, par, dat, num_covsim) {
   )
   fit <- fitCovHMM(par = par, dat = dat_sim)
   
+  # simulate covariate series using fitted AR model and compute state probabilities for each simulated covariate serie
   sim_z <- mclapply(1:num_covsim, function(i) simAr(n=n, sim$z), mc.cores = max(1, detectCores() - 2))
   sim_z <- do.call(cbind, sim_z)
   
   sim_delta <- mclapply(1:num_covsim, function(i) compStateProbs(sim_z[, i], fit$beta, n=n), mc.cores = max(1, detectCores() - 2))
   sim_delta <- array(unlist(sim_delta), dim = c(n=n, 3, num_covsim))
   
+  # bin covariate values and compute mean state probabilities within each bin
   z_bins <- seq(min(sim_z), max(sim_z), length.out = 30)
   bin_midpoints <- (z_bins[-1] + z_bins[-length(z_bins)]) / 2
   
@@ -32,6 +34,7 @@ simOneAr <- function(n, rho, mu, sig, beta, periodic, par, dat, num_covsim) {
     })
   }
   
+  # compile results into list of data frames for plotting
   result <- list(
     State1 = data.frame(x = bin_midpoints, y = mean_state_probs[, 1]),
     State2 = data.frame(x = bin_midpoints, y = mean_state_probs[, 2]),
@@ -45,7 +48,7 @@ simOneAr <- function(n, rho, mu, sig, beta, periodic, par, dat, num_covsim) {
 # compute stationary state probabilities over covariate grid 
 # (hypothetical stationary distribution (Patterson et al., 2009))
 fithypothetical <-  function(n, rho, mu, sig, beta, periodic, par, dat, num_covsim, min_z, max_z) {
-  
+  # simulate data + fit HMM
   sim <- simCovHMM(n = n, rho = rho, mu = mu, sig = sig, beta = beta, periodic = periodic)
   dat_sim <- list(
     x = sim$x,
@@ -72,9 +75,9 @@ fithypothetical <-  function(n, rho, mu, sig, beta, periodic, par, dat, num_covs
   return(result)
 }
 
-
+# just applying the AR approach and computing the hypothetical stationary distribution for one simulated dataset in one function, to compare the two approaches
 simOneArHypothetical <- function(n, rho, mu, sig, beta, periodic, par, dat, num_covsim, min_z, max_z) {
-  
+  # simulate data + fit HMM
   sim <- simCovHMM(n = n, rho = rho, mu = mu, sig = sig, beta = beta, periodic = periodic)
   dat_sim <- list(
     x = sim$x,
@@ -83,6 +86,7 @@ simOneArHypothetical <- function(n, rho, mu, sig, beta, periodic, par, dat, num_
   )
   fit <- fitCovHMM(par = par, dat = dat_sim)
   
+  # AR resampling approach
   sim_z <- mclapply(1:num_covsim, function(i) simAr(n=n, sim$z), mc.cores = max(1, detectCores() - 2))
   sim_z <- do.call(cbind, sim_z)
   
@@ -105,6 +109,7 @@ simOneArHypothetical <- function(n, rho, mu, sig, beta, periodic, par, dat, num_
     State3 = data.frame(x = bin_midpoints, y = mean_state_probs[, 3])
   )
   
+  # hypothetical stationary distribution
   zseq <- seq(min_z, max_z, length = 200)
   Gammaseq <- tpm_g(zseq, fit$beta)
   Deltaseq <- matrix(NA, length(zseq), dat_sim$N)
@@ -122,9 +127,9 @@ simOneArHypothetical <- function(n, rho, mu, sig, beta, periodic, par, dat, num_
   ))
 }
 
-
+# applying the BB approach
 simOneBB <- function(n, rho, mu, sig, beta, periodic, par, dat, num_covsim, blocklength=24) {
-  
+  # simulate data + fit HMM
   sim <- simCovHMM(n = n, rho = rho, mu = mu, sig = sig, beta = beta, periodic = periodic)
   dat_sim <- list(
     x = sim$x,
@@ -133,12 +138,14 @@ simOneBB <- function(n, rho, mu, sig, beta, periodic, par, dat, num_covsim, bloc
   )
   fit <- fitCovHMM(par = par, dat=dat_sim)
   
+  # BB resampling approach
   sim_z <- mclapply(1:num_covsim, function(i) block_bootstrap(sim$z, blocklength, n), mc.cores = max(1, detectCores() - 2))
   sim_z <- do.call(cbind, sim_z)
   
   sim_delta <- mclapply(1:num_covsim, function(i) compStateProbs(sim_z[, i], fit$beta, n=n), mc.cores = max(1, detectCores() - 2))
   sim_delta <- array(unlist(sim_delta), dim = c(n=n, 3, num_covsim))
   
+  # bin covariate values and compute mean state probabilities within each bin
   z_bins <- seq(min(sim_z), max(sim_z), length.out = 30)
   bin_midpoints <- (z_bins[-1] + z_bins[-length(z_bins)]) / 2
   
@@ -186,7 +193,7 @@ oneDirGAM <- function(n, rho, mu, sig, beta, periodic, par, dat, min_pred, max_p
   system.time(
     mod <- dir_reg(Y, x, k = 8, bs="tp", lambda0=100)
   )
-  
+  # predict mean state probabilities over covariate grid
   x_p <- seq(min_pred, max_pred, length = 200)
   Mean <- mod$predict(x_p)
   
