@@ -2,6 +2,7 @@
 
 source("functions/sim_fit_inhomogeneousHMM.r")
 source("functions/ar_approach.r")
+source("functions/dir_reg.r")
 
 library(scales)
 library(LaMa)
@@ -101,14 +102,108 @@ plot_state_probs(z_low, Delta_low, zseq, Deltaseq,
 # 2x2 plot with time series and state probabilities + hypotheticals
 # pdf("figures/talk_samehypo_differentpersistence.pdf", width=8, height=5)
 par(mfrow = c(2, 2), mar = c(4, 4, 2, 1))
-plot(ts(sim_high$z[1:500]), type = "l", xlab = "time", ylab = "covariate value z", main = "High persistence (first 500 obs.)", bty="n")
+plot(ts(sim_high$z[1:500]), type = "l", xlab = "time", ylab = "covariate value z", main = "(A): High persistence (first 500 obs.)", bty="n")
 points(84, sim_high$z[84], pch=16, col="red", cex=1)
-plot(ts(sim_low$z[1:500]), type = "l", xlab = "time", ylab = "covariate value z", main = "Low persistence", bty="n")
+plot(ts(sim_low$z[1:500]), type = "l", xlab = "time", ylab = "covariate value z", main = "(B): Low persistence", bty="n")
 plot_state_probs(z_high, Delta_high, zseq, Deltaseq, "")
 points(rep(sim_high$z[84],3), Delta_high[84, ], pch=16, col=colour, cex=1)
 points(rep(sim_high$z[84],3), Delta_high[84, ], pch=1, col="red", cex=1)
 plot_state_probs(z_low, Delta_low, zseq, Deltaseq,"")
 # dev.off()
+
+
+
+# pdf("figures/talk_dirreg_differentpersistence.pdf", width=10, height=3.5)
+par(mfrow = c(1, 2), mar = c(4, 4, 2, 1))
+mod_high <- dir_reg(Delta_high, z_high, k = 8, bs="tp", lambda0=100)
+x_high_p <- seq(-3.5, 3.5, length = 200)
+mean_high <- mod_high$predict(x_high_p)
+plot(0,0,xlim=c(-4, 4), ylim = c(0, 1),
+     pch = 16, col = alpha(colour[1], 0),
+     bty = "n", ylab = "Pr(state | z)",
+     xlab = "covariate value z", main="(A): High persistence")  
+for (state in 1:N) {
+  points(jitter(z_high, factor = 0), Delta_high[, state], col = alpha(colour[state], 0.05), pch = 20)
+}
+for (state in 1:N) {
+    lines(x_high_p, mean_high[,state], col = colour[state], lwd = 3, lty = 1)
+}
+
+mod_low <- dir_reg(Delta_low, z_low, k = 8, bs="tp", lambda0=100)
+x_low_p <- seq(-3.5, 3.5, length = 200)
+mean_low <- mod_low$predict(x_low_p)
+plot(0,0,xlim=c(-4, 4), ylim = c(0, 1),
+     pch = 16, col = alpha(colour[1], 0),
+     bty = "n", ylab = "Pr(state | z)",
+     xlab = "covariate value z", main="(B): Low(er) persistence")  
+for (state in 1:N) {
+  points(jitter(z_low, factor = 0), Delta_low[, state], col = alpha(colour[state], 0.05), pch = 20)
+}
+for (state in 1:N) {
+  lines(x_low_p, mean_low[,state], col = colour[state], lwd = 3, lty = 1)
+}
+# dev.off()
+
+par = list(beta = c(rep(-1, 6), rep(0,6)),
+           delta = c(0,0,1), 
+           mu = c(6, 15, 20), 
+           sigma = log(sig))
+
+
+
+sim_high <- simCovHMM(n=n, rho=rho_high, mu=mu, sig=sig, beta=beta, periodic=periodic)
+sim_low  <- simCovHMM(n=n, rho=rho_low, mu=mu, sig=sig, beta=beta, periodic=periodic)
+
+res_high <- compute_delta(sim_high$z, beta, N)
+res_low  <- compute_delta(sim_low$z,  beta, N)
+
+# burn-in removal
+burn <- 10
+
+z_high <- sim_high$z[burn:n]
+z_low  <- sim_low$z[burn:n]
+
+Delta_high <- res_high$Delta[burn:n, ]
+Delta_low  <- res_low$Delta[burn:n, ]
+
+ar_sim_high <- applyAr(sim_high, par, 400)
+ar_sim_low <- applyAr(sim_low, par, 400)
+
+par(mfrow = c(1, 2), mar = c(4, 4, 2, 1))
+# pdf("figures/talk_ar_differentpersistence.pdf", width=10, height=3.5)
+par(mfrow = c(1, 2), mar = c(4, 4, 2, 1))
+
+plot(0,0,xlim=c(-4, 4), ylim = c(0, 1),
+     pch = 16, col = alpha(colour[1], 0),
+     bty = "n", ylab = "Pr(state | z)",
+     xlab = "covariate value z", main="(A): High persistence")  
+for (state in 1:N) {
+  points(jitter(z_high, factor = 0), Delta_high[, state], col = alpha(colour[state], 0.05), pch = 20)
+}
+lines(ksmooth(ar_sim_high$result$State1$x, ar_sim_high$result$State1$y, "normal", bandwidth = 1), col = colour[1], lwd = 3, lty = 1)
+lines(ksmooth(ar_sim_high$result$State2$x, ar_sim_high$result$State2$y,"normal", bandwidth = 1), col = colour[2], lwd = 3, lty = 1)
+lines(ksmooth(ar_sim_high$result$State3$x, ar_sim_high$result$State3$y,"normal", bandwidth = 1), col = colour[3], lwd = 3, lty = 1)
+# for (state in 1:N) {
+#   lines(zseq, Deltaseq[, state], col = colour[state], lwd = 3, lty = 2)}
+
+plot(0,0,xlim=c(-4, 4), ylim = c(0, 1),
+     pch = 16, col = alpha(colour[1], 0),
+     bty = "n", ylab = "Pr(state | z)",
+     xlab = "covariate value z", main="(B): Low(er) persistence")  
+for (state in 1:N) {
+  points(jitter(z_low, factor = 0), Delta_low[, state], col = alpha(colour[state], 0.05), pch = 20)
+}
+lines(ksmooth(ar_sim_low$result$State1$x, ar_sim_low$result$State1$y, "normal", bandwidth = 1), col = colour[1], lwd = 3, lty = 1)
+lines(ksmooth(ar_sim_low$result$State2$x, ar_sim_low$result$State2$y,"normal", bandwidth = 1), col = colour[2], lwd = 3, lty = 1)
+lines(ksmooth(ar_sim_low$result$State3$x, ar_sim_low$result$State3$y,"normal", bandwidth = 1), col = colour[3], lwd = 3, lty = 1)
+# for (state in 1:N) {
+#   lines(zseq, Deltaseq[, state], col = colour[state], lwd = 3, lty = 2)}
+
+dev.off()
+
+
+for (state in 1:N) {
+  lines(zseq, Deltaseq[, state], col = colour[state], lwd = 3, lty = 2)}
 
 ### Plot showing time series with two highlighted points (for talk)
 # pdf("figures/talk_time_series.pdf", width=9, height=4)
